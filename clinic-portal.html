@@ -25,11 +25,30 @@
       background: radial-gradient(circle at top left, #e0f2fe 0%, #f8fafc 50%, #f1f5f9 100%);
       min-height: 100vh;
       margin: 0;
-      padding: 2rem 1rem;
+      padding: 1.5rem 1rem;
       color: var(--text);
     }
 
-    .container { max-width: 820px; margin: 0 auto; }
+    .container { max-width: 820px; margin: 0 auto; position: relative; }
+    
+    /* Top Bar with Admin Button */
+    .top-nav { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
+    .admin-badge-btn {
+      background: #0f172a;
+      color: white;
+      padding: 0.45rem 0.9rem;
+      border-radius: 8px;
+      font-size: 0.8rem;
+      font-weight: 700;
+      border: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    }
+    .admin-badge-btn:hover { background: #1e293b; }
+
     .desk-header { text-align: center; margin-bottom: 1.5rem; }
     .desk-badge { display: inline-block; background: #e0f2fe; color: var(--primary-dark); padding: 0.35rem 0.85rem; border-radius: 50px; font-weight: 700; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.5rem; }
     .desk-title { font-size: 1.6rem; font-weight: 800; color: var(--text); margin: 0; }
@@ -42,11 +61,6 @@
       border: 1px solid rgba(226, 232, 240, 0.8);
       margin-bottom: 1.5rem;
     }
-
-    /* Auth Gate Tabs */
-    .tab-nav { display: flex; background: #f1f5f9; padding: 0.35rem; border-radius: 10px; gap: 0.35rem; margin-bottom: 1.5rem; }
-    .tab-btn { flex: 1; border: none; padding: 0.65rem 1rem; border-radius: 8px; font-weight: 600; font-size: 0.9rem; cursor: pointer; background: transparent; color: var(--text-muted); }
-    .tab-btn.active { background: var(--surface); color: var(--primary); box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
 
     .form-group { margin-bottom: 1.2rem; }
     label { display: block; font-size: 0.8rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; color: #475569; margin-bottom: 0.4rem; }
@@ -109,9 +123,19 @@
     .vital-input { padding: 0.5rem; border: 1px solid var(--border); border-radius: 6px; font-size: 0.85rem; width: 100%; }
     .section-title { font-size: 0.9rem; font-weight: 800; color: var(--primary-dark); text-transform: uppercase; letter-spacing: 0.04em; margin: 1.25rem 0 0.5rem 0; border-top: 1px solid var(--border); padding-top: 1rem; }
 
+    /* Admin Modal */
+    .modal-overlay {
+      position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(15, 23, 42, 0.6);
+      display: none; align-items: center; justify-content: center; z-index: 100; padding: 1rem;
+    }
+    .modal-card {
+      background: white; border-radius: var(--radius); padding: 1.75rem; max-width: 540px; width: 100%;
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2); max-height: 90vh; overflow-y: auto;
+    }
+
     @media print {
       body { background: white; padding: 0; }
-      .no-print, .scan-btn, .status-pill, .desk-header, .queue-card, .link-section, button, #facility-auth-card, .search-box, .or-divider { display: none !important; }
+      .no-print, .scan-btn, .status-pill, .desk-header, .queue-card, .link-section, button, #facility-auth-card, .search-box, .or-divider, .top-nav, .modal-overlay { display: none !important; }
       .card { box-shadow: none; border: 1px solid #000; padding: 1.5rem; }
       #display-box { display: block !important; border-left: none !important; }
     }
@@ -120,43 +144,39 @@
 <body>
 
   <div class="container">
+    
+    <!-- Top Bar with Top-Right Admin Button -->
+    <div class="top-nav no-print">
+      <div style="font-size:0.85rem; font-weight:700; color:var(--text-muted);">🏥 Healthcare Terminal</div>
+      <button class="admin-badge-btn" onclick="openAdminModal()">🔑 Master Admin</button>
+    </div>
+
     <div class="desk-header no-print">
       <div class="desk-badge">Authorized Healthcare Desk</div>
       <h1 class="desk-title">Shekhar, Vinayak & Randhir Clinic Desk</h1>
     </div>
 
-    <!-- 1. MANDATORY CLINIC LOGIN / REGISTRATION GATE -->
+    <!-- 1. MANDATORY FACILITY SIGN-IN (FOR CLINIC STAFF) -->
     <div class="card no-print" id="facility-auth-card">
-      <div class="tab-nav">
-        <button class="tab-btn active" id="btn-clinic-login" onclick="showFacilityTab('login')">Facility Staff Login</button>
-        <button class="tab-btn" id="btn-clinic-reg" onclick="showFacilityTab('register')">Register New Medical Facility</button>
-      </div>
-
-      <!-- Facility Login Form -->
       <form id="clinic-login-form" onsubmit="handleClinicLogin(event)">
         <h3 style="margin-top:0; color:var(--primary); font-size:1.15rem;">🏥 Facility Authentication Required</h3>
-        <p style="font-size:0.85rem; color:var(--text-muted); margin-top:-0.4rem;">Sign in with your registered clinic facility account to access the terminal.</p>
-        <div class="form-group"><label>Clinic Facility Email</label><input type="email" id="c-login-email" placeholder="reception@clinic.com" required></div>
-        <div class="form-group"><label>Terminal Password</label><input type="password" id="c-login-pass" placeholder="••••••••" required></div>
-        <button type="submit" class="btn">Authenticate & Open Clinical Station →</button>
-      </form>
-
-      <!-- Facility Registration Form -->
-      <form id="clinic-reg-form" style="display:none;" onsubmit="handleClinicRegister(event)">
-        <h3 style="margin-top:0; color:var(--primary); font-size:1.15rem;">📋 Register Healthcare Facility</h3>
-        <p style="font-size:0.85rem; color:var(--text-muted); margin-top:-0.4rem;">Enroll your facility to begin scanning patient NFC tags and managing clinical queues.</p>
-        <div class="form-group"><label>Clinic / Hospital Legal Name</label><input type="text" id="c-reg-name" placeholder="St. Augustine Medical Center" required></div>
-        <div class="form-group"><label>Medical Facility License / ID</label><input type="text" id="c-reg-license" placeholder="LIC-MED-2026-TT" required></div>
-        <div class="form-group"><label>Official Clinic Email</label><input type="email" id="c-reg-email" placeholder="admin@medicalcenter.com" required></div>
-        <div class="form-group"><label>Access Password</label><input type="password" id="c-reg-pass" placeholder="••••••••" required></div>
-        <button type="submit" class="btn">Register Facility & Authorize Desk →</button>
+        <p style="font-size:0.85rem; color:var(--text-muted); margin-top:-0.4rem;">Please sign in with your authorized clinic facility credentials.</p>
+        
+        <div class="form-group">
+          <label>Facility Email</label>
+          <input type="email" id="c-login-email" placeholder="admin@clinic.com" required>
+        </div>
+        <div class="form-group">
+          <label>Access Password</label>
+          <input type="password" id="c-login-pass" placeholder="••••••••" required>
+        </div>
+        <button type="submit" class="btn">Authenticate & Access Clinical Desk →</button>
       </form>
     </div>
 
-    <!-- 2. CLINICAL WORKSTATION (HIDDEN UNTIL LOGIN) -->
+    <!-- 2. CLINICAL WORKSTATION (LOCKED UNTIL AUTHENTICATED) -->
     <div id="clinical-workstation" style="display:none;">
       
-      <!-- Facility Header Banner -->
       <div style="display:flex; justify-content:space-between; align-items:center; background:#ffffff; padding:0.85rem 1.25rem; border-radius:10px; border:1px solid var(--border); margin-bottom:1.5rem;" class="no-print">
         <div>
           <span style="font-size:0.75rem; color:var(--text-muted); text-transform:uppercase; font-weight:700;">Active Healthcare Station</span>
@@ -165,16 +185,14 @@
         <button onclick="logoutClinic()" style="background:#f1f5f9; border:1px solid var(--border); padding:0.4rem 0.8rem; border-radius:6px; font-weight:700; font-size:0.8rem; cursor:pointer;">🔒 Lock / Sign Out</button>
       </div>
 
-      <!-- Check-In Card: NFC Tap OR Verbal Patient ID Number -->
+      <!-- Check-In Card: NFC Tap OR Patient ID Number -->
       <div class="card no-print">
-        <!-- Method 1: NFC Tap -->
         <button id="scan-btn" class="scan-btn">
           <span>📡</span> Tap / Scan Patient NFC Tag
         </button>
 
         <div class="or-divider"><span>Or Patient ID Lookup</span></div>
 
-        <!-- Method 2: Numerical ID Lookup -->
         <form onsubmit="lookupByPatientId(event)" class="search-box">
           <input type="number" id="lookup-id-input" class="search-input" placeholder="Enter Patient ID Number (e.g. 1, 2, 3...)" min="1" required>
           <button type="submit" class="search-btn">🔍 Lookup ID</button>
@@ -272,7 +290,7 @@
           </button>
         </form>
 
-        <!-- Categorized Folders -->
+        <!-- Folders -->
         <div class="section-title">📁 Categorized Patient Records</div>
         <div id="folders-container" class="folder-grid-display"></div>
       </div>
@@ -293,11 +311,50 @@
     </div>
   </div>
 
+  <!-- 3. MASTER ADMIN MODAL -->
+  <div class="modal-overlay" id="admin-modal">
+    <div class="modal-card">
+      <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--border); padding-bottom:0.75rem; margin-bottom:1rem;">
+        <h3 style="margin:0; font-size:1.15rem; color:#0f172a;">🔑 Master Administrator Console</h3>
+        <button onclick="closeAdminModal()" style="background:none; border:none; font-size:1.2rem; cursor:pointer; color:var(--text-muted);">✕</button>
+      </div>
+
+      <!-- Admin Login Form -->
+      <form id="admin-login-form" onsubmit="handleAdminLogin(event)">
+        <p style="font-size:0.85rem; color:var(--text-muted); margin-top:0;">Authenticate as Master Admin to provision clinic facilities and manage database.</p>
+        <div class="form-group"><label>Admin Username</label><input type="text" id="adm-user" placeholder="Admin" required></div>
+        <div class="form-group"><label>Admin Password</label><input type="password" id="adm-pass" placeholder="••••••••" required></div>
+        <button type="submit" class="btn" style="background:#0f172a;">Log In to Admin Console</button>
+      </form>
+
+      <!-- Admin Dashboard (After Login) -->
+      <div id="admin-dashboard" style="display:none;">
+        <h4 style="margin:0 0 0.5rem 0; color:var(--primary);">➕ Provision New Clinic Facility</h4>
+        <form onsubmit="handleCreateClinic(event)" style="background:#f8fafc; padding:1rem; border-radius:8px; border:1px solid var(--border); margin-bottom:1.5rem;">
+          <div class="form-group"><label>Facility Name</label><input type="text" id="new-c-name" placeholder="e.g. San Fernando Health Center" required></div>
+          <div class="form-group"><label>Facility License ID</label><input type="text" id="new-c-lic" placeholder="LIC-MED-2026-02" required></div>
+          <div class="form-group"><label>Facility Email (Login)</label><input type="email" id="new-c-email" placeholder="staff@sfhealth.com" required></div>
+          <div class="form-group"><label>Access Password</label><input type="password" id="new-c-pass" placeholder="Create strong password" required></div>
+          <button type="submit" class="btn btn-success" style="background:#16a34a;">Register & Authorize Clinic</button>
+        </form>
+
+        <h4 style="margin:0 0 0.5rem 0; color:var(--primary);">🏥 Authorized Clinics List</h4>
+        <div id="admin-clinics-list" style="font-size:0.85rem; margin-bottom:1.5rem;"></div>
+
+        <div style="border-top:1px solid var(--border); padding-top:1rem; text-align:center;">
+          <button onclick="wipeDatabase()" style="background:#ef4444; color:white; border:none; padding:0.5rem 1rem; border-radius:6px; font-size:0.8rem; font-weight:700; cursor:pointer;">
+            🗑️ Wipe / Reset Database
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <script>
     const API_URL = "https://medical-nfc-backend.onrender.com/api";
     let activePatientEmail = "";
+    let cachedAdminAuth = null;
 
-    // Check if clinic was already authenticated in current browser session
     window.addEventListener('DOMContentLoaded', () => {
       const savedClinic = sessionStorage.getItem('active_clinic_session');
       if (savedClinic) {
@@ -305,43 +362,88 @@
       }
     });
 
-    function showFacilityTab(tab) {
-      if (tab === 'login') {
-        document.getElementById('clinic-login-form').style.display = 'block';
-        document.getElementById('clinic-reg-form').style.display = 'none';
-        document.getElementById('btn-clinic-login').classList.add('active');
-        document.getElementById('btn-clinic-reg').classList.remove('active');
-      } else {
-        document.getElementById('clinic-login-form').style.display = 'none';
-        document.getElementById('clinic-reg-form').style.display = 'block';
-        document.getElementById('btn-clinic-login').classList.remove('active');
-        document.getElementById('btn-clinic-reg').classList.add('active');
-      }
+    // Master Admin Modal Handlers
+    function openAdminModal() {
+      document.getElementById('admin-modal').style.display = 'flex';
     }
 
-    async function handleClinicRegister(e) {
-      e.preventDefault();
-      const payload = {
-        facilityName: document.getElementById('c-reg-name').value,
-        facilityLicense: document.getElementById('c-reg-license').value,
-        email: document.getElementById('c-reg-email').value,
-        password: document.getElementById('c-reg-pass').value
-      };
+    function closeAdminModal() {
+      document.getElementById('admin-modal').style.display = 'none';
+    }
 
-      const res = await fetch(`${API_URL}/clinic/register`, {
+    async function handleAdminLogin(e) {
+      e.preventDefault();
+      const username = document.getElementById('adm-user').value.trim();
+      const password = document.getElementById('adm-pass').value;
+
+      const res = await fetch(`${API_URL}/admin/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
+        body: JSON.stringify({ username, password })
       });
       const data = await res.json();
+
       if (data.success) {
-        sessionStorage.setItem('active_clinic_session', JSON.stringify(data.clinic));
-        unlockWorkstation(data.clinic);
+        cachedAdminAuth = { username, password };
+        document.getElementById('admin-login-form').style.display = 'none';
+        document.getElementById('admin-dashboard').style.display = 'block';
+        renderClinicsList(data.clinics);
       } else {
         alert(data.error);
       }
     }
 
+    async function handleCreateClinic(e) {
+      e.preventDefault();
+      const payload = {
+        adminUsername: cachedAdminAuth.username,
+        adminPassword: cachedAdminAuth.password,
+        facilityName: document.getElementById('new-c-name').value,
+        facilityLicense: document.getElementById('new-c-lic').value,
+        email: document.getElementById('new-c-email').value,
+        password: document.getElementById('new-c-pass').value
+      };
+
+      const res = await fetch(`${API_URL}/admin/create-clinic`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      const data = await res.json();
+
+      if (data.success) {
+        alert(data.message);
+        renderClinicsList(data.clinics);
+        e.target.reset();
+      } else {
+        alert(data.error);
+      }
+    }
+
+    function renderClinicsList(clinics) {
+      const listDiv = document.getElementById('admin-clinics-list');
+      if (!clinics || clinics.length === 0) {
+        listDiv.innerHTML = '<div style="color:var(--text-muted);">No clinics found.</div>';
+        return;
+      }
+      listDiv.innerHTML = clinics.map(c => `
+        <div style="background:#f1f5f9; padding:0.6rem 0.75rem; border-radius:6px; margin-bottom:0.4rem; border:1px solid var(--border);">
+          <b>${c.facilityName}</b> <span style="color:var(--text-muted); font-size:0.75rem;">(${c.facilityLicense})</span><br>
+          <span style="color:#0284c7;">${c.email}</span>
+        </div>
+      `).join('');
+    }
+
+    async function wipeDatabase() {
+      if (confirm("Are you sure you want to delete all registered patient profiles and queues?")) {
+        const res = await fetch(`${API_URL}/admin/reset-database`, { method: 'POST' });
+        const data = await res.json();
+        alert(data.message);
+        location.reload();
+      }
+    }
+
+    // Clinic Staff Authentication
     async function handleClinicLogin(e) {
       e.preventDefault();
       const payload = {

@@ -12,53 +12,95 @@ const SENDER_EMAIL = process.env.SENDER_EMAIL || "test@example.com";
 const SENDER_APP_PASSWORD = process.env.SENDER_APP_PASSWORD || "password";
 const FRONTEND_URL = "https://shekhar22697-cmd.github.io/medical-nfc-backend/patient-portal.html";
 
+// MASTER ADMIN CREDENTIALS
+const MASTER_ADMIN = {
+  username: "Admin",
+  password: "1P@ssword"
+};
+
 const transporter = nodemailer.createTransport({
   service: 'gmail',
   auth: { user: SENDER_EMAIL, pass: SENDER_APP_PASSWORD }
 });
 
 const USERS_DB = {}; 
-const CLINICS_DB = {}; 
 const CARD_MAP_DB = {};
-const PATIENT_ID_MAP_DB = {}; // Maps numerical ID (e.g. "1") -> patient email
+const PATIENT_ID_MAP_DB = {};
 const RESET_TOKENS = {};
 let CLINIC_QUEUE = [];
-let NEXT_PATIENT_ID = 1; // Starts at 1 and increments upwards
+let NEXT_PATIENT_ID = 1;
+
+// --- AUTHORIZED CLINIC FACILITIES ---
+const CLINICS_DB = {
+  "admin@clinic.com": {
+    facilityName: "Shekhar, Vinayak & Randhir Medical Center",
+    facilityLicense: "LIC-MED-2026-TT",
+    email: "admin@clinic.com",
+    password: "clinicpassword123",
+    registeredAt: new Date().toLocaleString()
+  }
+};
 
 app.get('/', (req, res) => {
   res.send('Shekhar, Vinayak & Randhir Clinical API is active!');
 });
 
-// 1. Clinic Facility Registration & Login
-app.post('/api/clinic/register', (req, res) => {
-  const { facilityName, facilityLicense, email, password } = req.body;
-  if (CLINICS_DB[email]) {
-    return res.status(400).json({ error: "Clinic facility already registered with this email." });
+// 1. Master Administrator Login
+app.post('/api/admin/login', (req, res) => {
+  const { username, password } = req.body;
+  if (username === MASTER_ADMIN.username && password === MASTER_ADMIN.password) {
+    res.json({ 
+      success: true, 
+      message: "Master Admin Authorized",
+      clinics: Object.values(CLINICS_DB),
+      totalPatients: Object.keys(USERS_DB).length
+    });
+  } else {
+    res.status(401).json({ error: "Invalid Master Administrator credentials." });
+  }
+});
+
+// 2. Master Admin: Provision New Clinic
+app.post('/api/admin/create-clinic', (req, res) => {
+  const { adminUsername, adminPassword, facilityName, facilityLicense, email, password } = req.body;
+
+  if (adminUsername !== MASTER_ADMIN.username || adminPassword !== MASTER_ADMIN.password) {
+    return res.status(403).json({ error: "Unauthorized: Master Admin credentials required." });
   }
 
-  CLINICS_DB[email] = {
+  const cleanEmail = email.toLowerCase().trim();
+  if (CLINICS_DB[cleanEmail]) {
+    return res.status(400).json({ error: "A clinic with this email already exists." });
+  }
+
+  CLINICS_DB[cleanEmail] = {
     facilityName,
     facilityLicense,
-    email,
+    email: cleanEmail,
     password,
     registeredAt: new Date().toLocaleString()
   };
 
-  res.json({ success: true, message: "Clinic facility registered successfully!", clinic: CLINICS_DB[email] });
+  res.json({ 
+    success: true, 
+    message: `Clinic '${facilityName}' has been successfully provisioned!`,
+    clinics: Object.values(CLINICS_DB)
+  });
 });
 
+// 3. Clinic Facility Login
 app.post('/api/clinic/login', (req, res) => {
   const { email, password } = req.body;
-  const clinic = CLINICS_DB[email];
+  const clinic = CLINICS_DB[email.toLowerCase().trim()];
 
   if (!clinic || clinic.password !== password) {
-    return res.status(401).json({ error: "Invalid facility credentials." });
+    return res.status(401).json({ error: "Access Denied: Unrecognized facility or incorrect credentials." });
   }
 
   res.json({ success: true, clinic });
 });
 
-// 2. Patient Registration (Sequential ID: 1, 2, 3...)
+// 4. Patient Registration (Sequential ID: 1, 2, 3...)
 app.post('/api/patient/register', (req, res) => {
   const { email, password, name, dob, bloodType, insurance, allergies, conditions, emergencyContact } = req.body;
   
@@ -267,13 +309,12 @@ app.post('/api/clinic/update-clinical-record', (req, res) => {
 // Reset Database
 app.post('/api/admin/reset-database', (req, res) => {
   for (let key in USERS_DB) delete USERS_DB[key];
-  for (let key in CLINICS_DB) delete CLINICS_DB[key];
   for (let key in CARD_MAP_DB) delete CARD_MAP_DB[key];
   for (let key in PATIENT_ID_MAP_DB) delete PATIENT_ID_MAP_DB[key];
   for (let key in RESET_TOKENS) delete RESET_TOKENS[key];
   CLINIC_QUEUE = [];
   NEXT_PATIENT_ID = 1;
-  res.json({ success: true, message: "All patient files, IDs, and queues reset to 1!" });
+  res.json({ success: true, message: "All patient records and queues wiped. Default clinic active." });
 });
 
 const PORT = process.env.PORT || 5000;
