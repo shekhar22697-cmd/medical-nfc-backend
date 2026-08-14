@@ -18,15 +18,47 @@ const transporter = nodemailer.createTransport({
 });
 
 const USERS_DB = {}; 
+const CLINICS_DB = {}; 
 const CARD_MAP_DB = {};
+const PATIENT_ID_MAP_DB = {}; // Maps numerical ID (e.g. "1") -> patient email
 const RESET_TOKENS = {};
-let CLINIC_QUEUE = []; // Active waiting room queue
+let CLINIC_QUEUE = [];
+let NEXT_PATIENT_ID = 1; // Starts at 1 and increments upwards
 
 app.get('/', (req, res) => {
   res.send('Shekhar, Vinayak & Randhir Clinical API is active!');
 });
 
-// Patient Registration
+// 1. Clinic Facility Registration & Login
+app.post('/api/clinic/register', (req, res) => {
+  const { facilityName, facilityLicense, email, password } = req.body;
+  if (CLINICS_DB[email]) {
+    return res.status(400).json({ error: "Clinic facility already registered with this email." });
+  }
+
+  CLINICS_DB[email] = {
+    facilityName,
+    facilityLicense,
+    email,
+    password,
+    registeredAt: new Date().toLocaleString()
+  };
+
+  res.json({ success: true, message: "Clinic facility registered successfully!", clinic: CLINICS_DB[email] });
+});
+
+app.post('/api/clinic/login', (req, res) => {
+  const { email, password } = req.body;
+  const clinic = CLINICS_DB[email];
+
+  if (!clinic || clinic.password !== password) {
+    return res.status(401).json({ error: "Invalid facility credentials." });
+  }
+
+  res.json({ success: true, clinic });
+});
+
+// 2. Patient Registration (Sequential ID: 1, 2, 3...)
 app.post('/api/patient/register', (req, res) => {
   const { email, password, name, dob, bloodType, insurance, allergies, conditions, emergencyContact } = req.body;
   
@@ -34,7 +66,10 @@ app.post('/api/patient/register', (req, res) => {
     return res.status(400).json({ error: "Account already exists with this email." });
   }
 
+  const patientId = String(NEXT_PATIENT_ID++);
+
   USERS_DB[email] = {
+    patientId,
     email, password, name, dob, bloodType,
     insurance: insurance || {},
     allergies: allergies || [],
@@ -45,6 +80,8 @@ app.post('/api/patient/register', (req, res) => {
     vitals: null,
     consultation: null
   };
+
+  PATIENT_ID_MAP_DB[patientId] = email;
 
   res.json({ success: true, message: "Account registered successfully!", user: USERS_DB[email] });
 });
@@ -132,7 +169,6 @@ app.post('/api/clinic/link-card', (req, res) => {
   
   if (!user) return res.status(404).json({ error: "No patient account found with that email." });
 
-  // Clean old link if re-assigning
   if (user.linkedCardId && CARD_MAP_DB[user.linkedCardId]) {
     delete CARD_MAP_DB[user.linkedCardId];
   }
@@ -143,7 +179,7 @@ app.post('/api/clinic/link-card', (req, res) => {
   res.json({ success: true, message: `Card ID '${cardId}' successfully assigned to ${user.name}` });
 });
 
-// Clinic: Scan Card & Add to Check-In Queue
+// Clinic: Scan Card & Add to Queue
 app.get('/api/clinic/scan/:cardId', (req, res) => {
   const { cardId } = req.params;
   const patientEmail = CARD_MAP_DB[cardId];
@@ -161,6 +197,7 @@ app.get('/api/clinic/scan/:cardId', (req, res) => {
       id: Date.now().toString(),
       name: patient.name,
       email: patient.email,
+      patientId: patient.patientId,
       cardId: cardId,
       time: timeString,
       status: 'Waiting'
@@ -170,23 +207,26 @@ app.get('/api/clinic/scan/:cardId', (req, res) => {
   res.json({ success: true, patient, queue: CLINIC_QUEUE });
 });
 
-// Clinic: Lookup by Email Address
-app.get('/api/clinic/lookup-email/:email', (req, res) => {
-  const email = req.params.email.toLowerCase().trim();
-  const patient = USERS_DB[email];
+// Clinic: Lookup by Patient ID Number (1, 2, 3...)
+app.get('/api/clinic/lookup-id/:id', (req, res) => {
+  const id = req.params.id.trim();
+  const patientEmail = PATIENT_ID_MAP_DB[id];
 
-  if (!patient) {
-    return res.status(404).json({ error: "No patient account found with this email address." });
+  if (!patientEmail || !USERS_DB[patientEmail]) {
+    return res.status(404).json({ error: `No patient account found with ID #${id}.` });
   }
 
+  const patient = USERS_DB[patientEmail];
   const timeString = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-  const exists = CLINIC_QUEUE.find(q => q.email === email && q.status === 'Waiting');
+
+  const exists = CLINIC_QUEUE.find(q => q.email === patientEmail && q.status === 'Waiting');
   if (!exists) {
     CLINIC_QUEUE.unshift({
       id: Date.now().toString(),
       name: patient.name,
       email: patient.email,
-      cardId: patient.linkedCardId || 'Manual Email Entry',
+      patientId: patient.patientId,
+      cardId: patient.linkedCardId || `ID #${patient.patientId}`,
       time: timeString,
       status: 'Waiting'
     });
@@ -227,10 +267,13 @@ app.post('/api/clinic/update-clinical-record', (req, res) => {
 // Reset Database
 app.post('/api/admin/reset-database', (req, res) => {
   for (let key in USERS_DB) delete USERS_DB[key];
+  for (let key in CLINICS_DB) delete CLINICS_DB[key];
   for (let key in CARD_MAP_DB) delete CARD_MAP_DB[key];
+  for (let key in PATIENT_ID_MAP_DB) delete PATIENT_ID_MAP_DB[key];
   for (let key in RESET_TOKENS) delete RESET_TOKENS[key];
   CLINIC_QUEUE = [];
-  res.json({ success: true, message: "All patient files, queues, and NFC links wiped." });
+  NEXT_PATIENT_ID = 1;
+  res.json({ success: true, message: "All patient files, IDs, and queues reset to 1!" });
 });
 
 const PORT = process.env.PORT || 5000;
