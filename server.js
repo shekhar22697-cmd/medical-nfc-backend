@@ -155,7 +155,6 @@ app.get('/api/clinic/scan/:cardId', (req, res) => {
   const patient = USERS_DB[patientEmail];
   const timeString = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
-  // Add to active queue if not already present
   const exists = CLINIC_QUEUE.find(q => q.email === patientEmail && q.status === 'Waiting');
   if (!exists) {
     CLINIC_QUEUE.unshift({
@@ -163,6 +162,31 @@ app.get('/api/clinic/scan/:cardId', (req, res) => {
       name: patient.name,
       email: patient.email,
       cardId: cardId,
+      time: timeString,
+      status: 'Waiting'
+    });
+  }
+
+  res.json({ success: true, patient, queue: CLINIC_QUEUE });
+});
+
+// Clinic: Lookup by Email Address
+app.get('/api/clinic/lookup-email/:email', (req, res) => {
+  const email = req.params.email.toLowerCase().trim();
+  const patient = USERS_DB[email];
+
+  if (!patient) {
+    return res.status(404).json({ error: "No patient account found with this email address." });
+  }
+
+  const timeString = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  const exists = CLINIC_QUEUE.find(q => q.email === email && q.status === 'Waiting');
+  if (!exists) {
+    CLINIC_QUEUE.unshift({
+      id: Date.now().toString(),
+      name: patient.name,
+      email: patient.email,
+      cardId: patient.linkedCardId || 'Manual Email Entry',
       time: timeString,
       status: 'Waiting'
     });
@@ -187,7 +211,7 @@ app.post('/api/clinic/queue/status', (req, res) => {
   res.json({ success: true, queue: CLINIC_QUEUE });
 });
 
-// Clinic: Save Triage Vitals & Doctor Consultation Notes
+// Clinic: Save Triage Vitals & Doctor Notes
 app.post('/api/clinic/update-clinical-record', (req, res) => {
   const { email, vitals, consultation } = req.body;
   const user = USERS_DB[email];

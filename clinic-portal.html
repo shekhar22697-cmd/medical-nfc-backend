@@ -49,16 +49,16 @@
 
     .scan-btn {
       width: 100%;
-      padding: 1.1rem;
+      padding: 1rem;
       border-radius: 10px;
       border: none;
-      font-size: 1.05rem;
+      font-size: 1rem;
       font-weight: 800;
       cursor: pointer;
       font-family: inherit;
       background: linear-gradient(135deg, #0284c7, #0d9488);
       color: white;
-      box-shadow: 0 6px 20px rgba(2, 132, 199, 0.28);
+      box-shadow: 0 4px 14px rgba(2, 132, 199, 0.25);
       display: flex;
       align-items: center;
       justify-content: center;
@@ -66,8 +66,51 @@
     }
     .scan-btn:hover { filter: brightness(1.08); transform: translateY(-1px); }
 
+    /* Divider */
+    .or-divider {
+      display: flex;
+      align-items: center;
+      text-align: center;
+      margin: 1.25rem 0;
+      color: var(--text-muted);
+      font-size: 0.8rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .or-divider::before, .or-divider::after {
+      content: '';
+      flex: 1;
+      border-bottom: 1px solid var(--border);
+    }
+    .or-divider span { padding: 0 0.75rem; }
+
+    /* Search Box */
+    .search-box { display: flex; gap: 0.5rem; }
+    .search-input {
+      flex: 1;
+      padding: 0.75rem 1rem;
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      font-size: 0.9rem;
+      font-family: inherit;
+      outline: none;
+    }
+    .search-input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.12); }
+    .search-btn {
+      padding: 0.75rem 1.25rem;
+      background: #0f172a;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-weight: 700;
+      font-size: 0.9rem;
+      cursor: pointer;
+    }
+    .search-btn:hover { background: #1e293b; }
+
     .status-pill {
-      margin-top: 0.85rem;
+      margin-top: 1rem;
       padding: 0.6rem 1rem;
       background: #f8fafc;
       border-radius: 8px;
@@ -100,7 +143,7 @@
     .data-label { font-weight: 700; color: #64748b; }
     .tag-danger { background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; padding: 0.15rem 0.5rem; border-radius: 4px; font-weight: 600; font-size: 0.8rem; display: inline-block; margin-right: 0.3rem; margin-bottom: 0.2rem; }
 
-    /* Folder display cards */
+    /* Folders Display */
     .folder-grid-display { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 0.75rem; margin-top: 1rem; }
     .folder-display-card { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 0.75rem 0.9rem; }
     .folder-title { font-weight: 700; font-size: 0.82rem; color: #334155; margin-bottom: 0.3rem; }
@@ -108,15 +151,14 @@
     .action-btn.dl { background: #e2e8f0; color: #334155; margin-left: 0.25rem; }
     .no-file { font-size: 0.75rem; color: #94a3b8; font-style: italic; }
 
-    /* Clinical Intake Form */
+    /* Vitals Grid */
     .grid-vitals { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 0.6rem; margin-top: 0.5rem; }
     .vital-input { padding: 0.5rem; border: 1px solid var(--border); border-radius: 6px; font-size: 0.85rem; width: 100%; }
     .section-title { font-size: 0.9rem; font-weight: 800; color: var(--primary-dark); text-transform: uppercase; letter-spacing: 0.04em; margin: 1.25rem 0 0.5rem 0; border-top: 1px solid var(--border); padding-top: 1rem; }
 
-    /* Print Styles */
     @media print {
       body { background: white; padding: 0; }
-      .no-print, .scan-btn, .status-pill, .desk-header, .queue-card, .link-section, button { display: none !important; }
+      .no-print, .scan-btn, .status-pill, .desk-header, .queue-card, .link-section, button, .search-box, .or-divider { display: none !important; }
       .card { box-shadow: none; border: 1px solid #000; padding: 1.5rem; }
       #display-box { display: block !important; border-left: none !important; }
     }
@@ -130,11 +172,21 @@
       <h1 class="desk-title">Shekhar, Vinayak & Randhir Clinic Desk</h1>
     </div>
 
-    <!-- Scan & Check-in -->
+    <!-- Intake & Search Card -->
     <div class="card no-print">
+      <!-- Method 1: NFC Tap -->
       <button id="scan-btn" class="scan-btn">
         <span>📡</span> Tap / Scan Patient NFC Tag
       </button>
+
+      <div class="or-divider"><span>Or Search Record Manually</span></div>
+
+      <!-- Method 2: Email Search -->
+      <form onsubmit="lookupByEmail(event)" class="search-box">
+        <input type="email" id="lookup-email-input" class="search-input" placeholder="Enter patient's registered email (e.g. jane@example.com)" required>
+        <button type="submit" class="search-btn">🔍 Lookup</button>
+      </form>
+
       <div id="status" class="status-pill">
         <span id="status-icon">⚪</span> <span id="status-text">Ready for patient check-in</span>
       </div>
@@ -197,7 +249,7 @@
         No triage vitals recorded for this session.
       </div>
       
-      <!-- Triage Intake Form (Reception / Nurse) -->
+      <!-- Triage Form -->
       <form id="vitals-form" class="no-print" onsubmit="saveVitals(event)">
         <div class="grid-vitals">
           <input type="text" id="v-bp" placeholder="BP (e.g. 120/80)" class="vital-input">
@@ -225,7 +277,7 @@
         </button>
       </form>
 
-      <!-- Patient Document Folders -->
+      <!-- Folders -->
       <div class="section-title">📁 Categorized Patient Records</div>
       <div id="folders-container" class="folder-grid-display"></div>
     </div>
@@ -248,13 +300,12 @@
     const API_URL = "https://medical-nfc-backend.onrender.com/api";
     let activePatientEmail = "";
 
-    // Initialize & fetch queue on load
     window.addEventListener('DOMContentLoaded', () => {
       fetchQueue();
-      setInterval(fetchQueue, 15000); // Polling every 15s
+      setInterval(fetchQueue, 15000);
     });
 
-    // 1. NFC Scanning & Web NFC Handler
+    // 1. NFC Scan Handler
     document.getElementById('scan-btn').addEventListener('click', async () => {
       if (!('NDEFReader' in window)) {
         const testId = prompt("Web NFC not available on this browser. Enter Card ID to test:", "PATIENT-001");
@@ -286,7 +337,7 @@
       }
     });
 
-    // 2. Fetch Card Data & Cache to LocalStorage (Offline Resilience)
+    // 2. Fetch by Card Scan
     async function fetchCardData(cardId) {
       try {
         const res = await fetch(`${API_URL}/clinic/scan/${cardId}`);
@@ -295,17 +346,13 @@
         if (result.success) {
           const p = result.patient;
           activePatientEmail = p.email;
-
-          // Save to local offline cache
           localStorage.setItem(`offline_nfc_${cardId}`, JSON.stringify(p));
-
           renderPatientDetails(p);
           if (result.queue) renderQueue(result.queue);
         } else {
           alert(result.error);
         }
       } catch (networkErr) {
-        // Fallback to Offline Cache
         const cached = localStorage.getItem(`offline_nfc_${cardId}`);
         if (cached) {
           const p = JSON.parse(cached);
@@ -318,7 +365,32 @@
       }
     }
 
-    // 3. Render Patient Data
+    // 3. Fetch by Email Lookup
+    async function lookupByEmail(e) {
+      e.preventDefault();
+      const email = document.getElementById('lookup-email-input').value.trim();
+      if (!email) return;
+
+      try {
+        const res = await fetch(`${API_URL}/clinic/lookup-email/${encodeURIComponent(email)}`);
+        const result = await res.json();
+
+        if (result.success) {
+          const p = result.patient;
+          activePatientEmail = p.email;
+          document.getElementById('status-icon').innerText = "👤";
+          document.getElementById('status-text').innerHTML = `Loaded Profile: <b>${p.name}</b>`;
+          renderPatientDetails(p);
+          if (result.queue) renderQueue(result.queue);
+        } else {
+          alert(result.error);
+        }
+      } catch (err) {
+        alert("Failed to connect to server. Please verify your connection.");
+      }
+    }
+
+    // 4. Render Patient Details
     function renderPatientDetails(p) {
       document.getElementById('display-box').style.display = 'block';
       document.getElementById('patient-name').innerText = p.name;
@@ -340,12 +412,13 @@
       document.getElementById('conditions').innerText = p.conditions && p.conditions.length ? p.conditions.join(', ') : 'None';
       document.getElementById('emergency').innerText = p.emergencyContact || 'None on record';
 
-      // Render Vitals & Consultations
       if (p.vitals) {
         document.getElementById('vitals-display').innerHTML = `
           <b>BP:</b> ${p.vitals.bp || '--'} | <b>Pulse:</b> ${p.vitals.hr || '--'} | <b>Temp:</b> ${p.vitals.temp || '--'} | <b>SpO2:</b> ${p.vitals.spo2 || '--'} | <b>Weight:</b> ${p.vitals.weight || '--'}
           <div style="font-size:0.75rem; color:#64748b; margin-top:0.2rem;">Logged: ${p.vitals.recordedAt}</div>
         `;
+      } else {
+        document.getElementById('vitals-display').innerText = "No triage vitals recorded for this session.";
       }
 
       if (p.consultation) {
@@ -354,6 +427,8 @@
           <div style="margin-top:0.3rem;"><b>Rx:</b> ${p.consultation.prescription || 'None'}</div>
           <div style="font-size:0.75rem; color:#64748b; margin-top:0.2rem;">Encounter: ${p.consultation.recordedAt}</div>
         `;
+      } else {
+        document.getElementById('consultation-display').innerText = "No doctor notes recorded yet.";
       }
 
       const docs = p.document || {};
@@ -392,7 +467,7 @@
       `;
     }
 
-    // 4. Queue Management
+    // 5. Queue Polling & Actions
     async function fetchQueue() {
       try {
         const res = await fetch(`${API_URL}/clinic/queue`);
@@ -431,10 +506,10 @@
       if (data.success) renderQueue(data.queue);
     }
 
-    // 5. Save Vitals & Consultation Notes
+    // 6. Save Vitals & Consultation
     async function saveVitals(e) {
       e.preventDefault();
-      if (!activePatientEmail) return alert("Please scan a patient card first.");
+      if (!activePatientEmail) return alert("Please scan or search a patient record first.");
 
       const vitals = {
         bp: document.getElementById('v-bp').value,
@@ -458,7 +533,7 @@
 
     async function saveConsultation(e) {
       e.preventDefault();
-      if (!activePatientEmail) return alert("Please scan a patient card first.");
+      if (!activePatientEmail) return alert("Please scan or search a patient record first.");
 
       const consultation = {
         diagnosis: document.getElementById('doc-diagnosis').value,
@@ -477,7 +552,7 @@
       }
     }
 
-    // 6. Link / Replace Card
+    // 7. Link / Replace Card
     async function linkCard() {
       const email = document.getElementById('link-email').value.trim();
       const cardId = document.getElementById('link-card-id').value.trim();
