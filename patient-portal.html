@@ -3,136 +3,265 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Patient Online Intake Portal</title>
+  <title>CareSync | Patient Digital Health Portal</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <style>
-    body { font-family: sans-serif; max-width: 600px; margin: 2rem auto; padding: 1rem; background: #f8fafc; color: #0f172a; }
-    .card { background: white; padding: 1.5rem; border-radius: 8px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); margin-bottom: 1.5rem; }
-    .form-group { margin-bottom: 1rem; }
-    label { display: block; font-weight: bold; margin-bottom: 0.3rem; font-size: 0.85rem; color: #475569; }
-    input, select { width: 100%; padding: 0.6rem; box-sizing: border-box; border: 1px solid #cbd5e1; border-radius: 4px; font-size: 0.95rem; }
-    button { width: 100%; background: #0284c7; color: white; padding: 0.8rem; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 1rem; }
-    
-    /* Navigation Tabs */
-    .tab-container { display: flex; gap: 0.5rem; margin-bottom: 1.5rem; }
-    .tab-btn { flex: 1; padding: 0.75rem; background: #e2e8f0; color: #475569; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 0.95rem; transition: 0.2s; }
-    .tab-btn.active { background: #0284c7; color: white; }
+    :root {
+      --primary: #0284c7;
+      --primary-dark: #0369a1;
+      --primary-light: #e0f2fe;
+      --accent: #0d9488;
+      --bg: #f8fafc;
+      --surface: #ffffff;
+      --text: #0f172a;
+      --text-muted: #64748b;
+      --border: #e2e8f0;
+      --danger: #ef4444;
+      --success: #10b981;
+      --radius: 12px;
+      --shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.06), 0 8px 10px -6px rgba(15, 23, 42, 0.04);
+    }
 
-    /* Forgot Password Link */
-    .forgot-link { display: block; text-align: right; margin-top: 0.4rem; margin-bottom: 1rem; font-size: 0.85rem; color: #0284c7; text-decoration: none; cursor: pointer; font-weight: 600; }
+    * { box-sizing: border-box; transition: all 0.2s ease; }
+    body {
+      font-family: 'Plus Jakarta Sans', -apple-system, sans-serif;
+      background: radial-gradient(circle at top right, #e0f2fe 0%, #f8fafc 50%, #f1f5f9 100%);
+      min-height: 100vh;
+      margin: 0;
+      padding: 2.5rem 1rem;
+      color: var(--text);
+    }
+
+    .container { max-width: 680px; margin: 0 auto; }
+    
+    /* Header Brand */
+    .brand-header { text-align: center; margin-bottom: 2rem; }
+    .brand-logo { 
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 52px; height: 52px; background: linear-gradient(135deg, var(--primary), var(--accent));
+      color: white; border-radius: 14px; font-size: 1.6rem; margin-bottom: 0.75rem;
+      box-shadow: 0 8px 16px -4px rgba(2, 132, 199, 0.35);
+    }
+    .brand-title { font-size: 1.6rem; font-weight: 800; color: var(--text); margin: 0; letter-spacing: -0.02em; }
+    .brand-subtitle { color: var(--text-muted); font-size: 0.9rem; margin-top: 0.3rem; }
+
+    /* Glass Cards */
+    .card {
+      background: var(--surface);
+      border-radius: var(--radius);
+      padding: 2rem;
+      box-shadow: var(--shadow);
+      border: 1px solid rgba(226, 232, 240, 0.8);
+      margin-bottom: 1.5rem;
+    }
+
+    /* Tabs */
+    .tab-nav {
+      display: flex;
+      background: #f1f5f9;
+      padding: 0.35rem;
+      border-radius: 10px;
+      gap: 0.35rem;
+      margin-bottom: 1.75rem;
+    }
+    .tab-btn {
+      flex: 1;
+      border: none;
+      padding: 0.7rem 1rem;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 0.9rem;
+      cursor: pointer;
+      background: transparent;
+      color: var(--text-muted);
+    }
+    .tab-btn.active {
+      background: var(--surface);
+      color: var(--primary);
+      box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+    }
+
+    /* Form Elements */
+    .form-group { margin-bottom: 1.25rem; }
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+    label { display: block; font-size: 0.82rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; color: #475569; margin-bottom: 0.4rem; }
+    
+    input, select {
+      width: 100%;
+      padding: 0.75rem 1rem;
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      font-size: 0.95rem;
+      font-family: inherit;
+      background: #fcfdfe;
+      outline: none;
+    }
+    input:focus, select:focus {
+      border-color: var(--primary);
+      background: #ffffff;
+      box-shadow: 0 0 0 4px rgba(2, 132, 199, 0.12);
+    }
+
+    .btn {
+      width: 100%;
+      padding: 0.85rem 1.25rem;
+      border-radius: 8px;
+      border: none;
+      font-size: 0.95rem;
+      font-weight: 700;
+      cursor: pointer;
+      font-family: inherit;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+      color: white;
+      box-shadow: 0 4px 12px rgba(2, 132, 199, 0.25);
+    }
+    .btn:hover { filter: brightness(1.05); transform: translateY(-1px); }
+    .btn:active { transform: translateY(0); }
+    .btn-success { background: linear-gradient(135deg, #10b981, #059669); box-shadow: 0 4px 12px rgba(16, 185, 129, 0.25); }
+
+    .forgot-link { display: inline-block; font-size: 0.85rem; color: var(--primary); font-weight: 600; text-decoration: none; cursor: pointer; margin-top: 0.3rem; }
     .forgot-link:hover { text-decoration: underline; }
 
-    /* Folder Upload Section Styling */
-    .folder-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1rem; margin-top: 1rem; }
-    .folder-card { border: 1px dashed #cbd5e1; background: #f1f5f9; padding: 1rem; border-radius: 6px; }
-    .folder-title { font-weight: bold; margin-bottom: 0.5rem; font-size: 0.9rem; color: #1e293b; display: flex; align-items: center; gap: 0.4rem; }
-    .folder-card input[type="file"] { background: white; font-size: 0.8rem; padding: 0.4rem; }
-    .existing-file { font-size: 0.75rem; color: #16a34a; font-weight: bold; margin-top: 0.3rem; }
+    /* Folders Section */
+    .folder-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem; margin-top: 1rem; }
+    .folder-card {
+      background: #f8fafc;
+      border: 1.5px dashed #cbd5e1;
+      border-radius: 10px;
+      padding: 1rem;
+      position: relative;
+    }
+    .folder-card:hover { border-color: var(--primary); background: #f0f9ff; }
+    .folder-header { display: flex; align-items: center; gap: 0.5rem; font-weight: 700; font-size: 0.88rem; color: #1e293b; margin-bottom: 0.5rem; }
+    .folder-card input[type="file"] { background: white; padding: 0.4rem; font-size: 0.78rem; }
+    .file-badge { font-size: 0.75rem; color: #059669; font-weight: 700; margin-top: 0.4rem; display: flex; align-items: center; gap: 0.3rem; }
   </style>
 </head>
 <body>
 
-  <!-- Auth Box with Register, Login, and Forgot Password -->
-  <div class="card" id="auth-box">
-    <div class="tab-container" id="tab-header">
-      <button class="tab-btn active" id="tab-reg-btn" onclick="showAuthTab('register')">Create New Account</button>
-      <button class="tab-btn" id="tab-login-btn" onclick="showAuthTab('login')">Existing Patient Login</button>
+  <div class="container">
+    <div class="brand-header">
+      <div class="brand-logo">🩺</div>
+      <h1 class="brand-title">CareSync Health Portal</h1>
+      <p class="brand-subtitle">Encrypted Intake & Cloud Medical Record Management</p>
     </div>
 
-    <!-- Registration Form -->
-    <form id="register-form">
-      <h3 style="margin-top:0; color:#0284c7;">🏥 New Patient Registration</h3>
-      <div class="form-group"><label>Email Address</label><input type="email" id="reg-email" placeholder="jane@example.com" required></div>
-      <div class="form-group"><label>Password</label><input type="password" id="reg-pass" required></div>
-      <div class="form-group"><label>Full Name</label><input type="text" id="reg-name" placeholder="Jane Doe" required></div>
-      <div class="form-group"><label>Date of Birth</label><input type="text" id="reg-dob" placeholder="May 14, 1992" required></div>
-      <div class="form-group"><label>Blood Type</label>
-        <select id="reg-blood"><option>O+</option><option>O-</option><option>A+</option><option>A-</option><option>B+</option><option>AB+</option></select>
+    <!-- Auth Card -->
+    <div class="card" id="auth-box">
+      <div class="tab-nav" id="tab-header">
+        <button class="tab-btn active" id="tab-reg-btn" onclick="showAuthTab('register')">New Patient Registration</button>
+        <button class="tab-btn" id="tab-login-btn" onclick="showAuthTab('login')">Patient Sign In</button>
       </div>
-      <button type="submit">Register & Continue to Intake</button>
-    </form>
 
-    <!-- Login Form -->
-    <form id="login-form" style="display:none;">
-      <h3 style="margin-top:0; color:#0284c7;">🔑 Patient Login</h3>
-      <div class="form-group"><label>Email Address</label><input type="email" id="login-email" placeholder="jane@example.com" required></div>
-      <div class="form-group"><label>Password</label><input type="password" id="login-pass" required></div>
-      <a class="forgot-link" onclick="showAuthTab('forgot')">Forgot Password?</a>
-      <button type="submit" style="background:#0284c7;">Log In to My Records</button>
-    </form>
+      <!-- Register -->
+      <form id="register-form">
+        <div class="form-group"><label>Full Legal Name</label><input type="text" id="reg-name" placeholder="e.g. Jane Sarah Doe" required></div>
+        <div class="grid-2">
+          <div class="form-group"><label>Date of Birth</label><input type="text" id="reg-dob" placeholder="DD/MM/YYYY" required></div>
+          <div class="form-group">
+            <label>Blood Group</label>
+            <select id="reg-blood"><option>O+</option><option>O-</option><option>A+</option><option>A-</option><option>B+</option><option>AB+</option><option>AB-</option></select>
+          </div>
+        </div>
+        <div class="form-group"><label>Email Address</label><input type="email" id="reg-email" placeholder="jane@example.com" required></div>
+        <div class="form-group"><label>Security Password</label><input type="password" id="reg-pass" placeholder="••••••••" required></div>
+        <button type="submit" class="btn">Complete Registration & Continue →</button>
+      </form>
 
-    <!-- Forgot Password Form -->
-    <form id="forgot-form" style="display:none;">
-      <h3 style="margin-top:0; color:#0284c7;">🔒 Reset Your Password</h3>
-      <p style="font-size: 0.85rem; color: #64748b; margin-top: -0.5rem;">Enter your registered account email and choose a new password.</p>
-      <div class="form-group"><label>Registered Email Address</label><input type="email" id="reset-email" placeholder="jane@example.com" required></div>
-      <div class="form-group"><label>New Password</label><input type="password" id="reset-new-pass" required placeholder="Enter new password"></div>
-      <button type="submit" style="background:#0284c7;">Set New Password</button>
-      <a class="forgot-link" style="text-align: center; margin-top: 1rem;" onclick="showAuthTab('login')">← Back to Login</a>
-    </form>
-  </div>
+      <!-- Login -->
+      <form id="login-form" style="display:none;">
+        <div class="form-group"><label>Account Email</label><input type="email" id="login-email" placeholder="jane@example.com" required></div>
+        <div class="form-group">
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <label>Password</label>
+            <a class="forgot-link" onclick="showAuthTab('forgot')">Forgot?</a>
+          </div>
+          <input type="password" id="login-pass" placeholder="••••••••" required>
+        </div>
+        <button type="submit" class="btn" style="margin-top: 1rem;">Access Medical Records →</button>
+      </form>
 
-  <!-- Medical Intake / Upload Dashboard -->
-  <div class="card" id="intake-box" style="display:none;">
-    <div style="display: flex; justify-content: space-between; align-items: center;">
-      <h2 style="margin-top:0; color:#0284c7;" id="welcome-heading">📝 Medical & Insurance Records</h2>
-      <button onclick="location.reload()" style="width:auto; padding: 0.4rem 0.8rem; background:#64748b; font-size: 0.8rem;">Log Out</button>
+      <!-- Forgot Password Email Link -->
+      <form id="forgot-form" style="display:none;">
+        <h3 style="margin-top:0; color:var(--primary); font-size:1.15rem;">🔒 Account Password Recovery</h3>
+        <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:1.25rem;">Enter your verified email. We'll send you an encrypted token link to set a new password.</p>
+        <div class="form-group"><label>Registered Email</label><input type="email" id="reset-request-email" placeholder="jane@example.com" required></div>
+        <button type="submit" id="btn-send-email" class="btn">Dispatch Reset Link ✉️</button>
+        <div style="text-align:center; margin-top:1rem;"><a class="forgot-link" onclick="showAuthTab('login')">← Return to Login</a></div>
+      </form>
+
+      <!-- Reset with Token -->
+      <form id="token-reset-form" style="display:none;">
+        <h3 style="margin-top:0; color:var(--primary);">🔒 Update Password</h3>
+        <div class="form-group"><label>New Password</label><input type="password" id="token-new-pass" placeholder="Enter secure new password" required></div>
+        <button type="submit" class="btn btn-success">Update & Secure Account</button>
+      </form>
     </div>
-    
-    <form id="intake-form">
-      <div class="form-group"><label>Insurance Provider</label><input type="text" id="ins-provider" placeholder="e.g. Sagicor / Guardian Life"></div>
-      <div class="form-group"><label>Policy Number</label><input type="text" id="ins-policy" placeholder="POL-882019"></div>
-      <div class="form-group"><label>Severe Allergies (comma separated)</label><input type="text" id="allergies" placeholder="Penicillin, Peanuts"></div>
-      <div class="form-group"><label>Chronic Conditions</label><input type="text" id="conditions" placeholder="Asthma, Diabetes"></div>
-      <div class="form-group"><label>Emergency Contact</label><input type="text" id="emergency" placeholder="John Doe - 555-0192" required></div>
-      
-      <h3 style="margin-top: 1.5rem; margin-bottom: 0.3rem; color: #0284c7;">📁 Upload / Update Medical Documents</h3>
-      <p style="font-size: 0.8rem; color: #64748b; margin-top: 0;">Upload new scans or PDFs below to save into each respective category.</p>
 
-      <div class="folder-grid">
-        <div class="folder-card">
-          <div class="folder-title">📝 1. Doctor's Notes</div>
-          <input type="file" id="file-doc-notes" accept="image/*,.pdf">
-          <div id="status-doc-notes" class="existing-file"></div>
+    <!-- Intake & Folder Upload Dashboard -->
+    <div class="card" id="intake-box" style="display:none;">
+      <div style="display:flex; justify-content:space-between; align-items:center; border-bottom: 1px solid var(--border); padding-bottom: 1rem; margin-bottom: 1.5rem;">
+        <div>
+          <h2 style="margin:0; font-size: 1.3rem;" id="welcome-heading">Patient Dashboard</h2>
+          <span style="font-size: 0.8rem; color: var(--text-muted);">Syncing live with Cloud NFC Server</span>
         </div>
-        <div class="folder-card">
-          <div class="folder-title">🩸 2. Blood Tests</div>
-          <input type="file" id="file-blood-tests" accept="image/*,.pdf">
-          <div id="status-blood-tests" class="existing-file"></div>
-        </div>
-        <div class="folder-card">
-          <div class="folder-title">🦴 3. X-Ray</div>
-          <input type="file" id="file-xray" accept="image/*,.pdf">
-          <div id="status-xray" class="existing-file"></div>
-        </div>
-        <div class="folder-card">
-          <div class="folder-title">🧠 4. CT Scans</div>
-          <input type="file" id="file-ct-scans" accept="image/*,.pdf">
-          <div id="status-ct-scans" class="existing-file"></div>
-        </div>
-        <div class="folder-card">
-          <div class="folder-title">📡 5. Ultrasound</div>
-          <input type="file" id="file-ultrasound" accept="image/*,.pdf">
-          <div id="status-ultrasound" class="existing-file"></div>
-        </div>
-        <div class="folder-card">
-          <div class="folder-title">❤️ 6. Cardiology</div>
-          <input type="file" id="file-cardiology" accept="image/*,.pdf">
-          <div id="status-cardiology" class="existing-file"></div>
-        </div>
+        <button onclick="location.reload()" style="background:#f1f5f9; color:var(--text-muted); border:1px solid var(--border); padding:0.4rem 0.8rem; border-radius:6px; font-weight:700; cursor:pointer; font-size:0.8rem;">Log Out</button>
       </div>
 
-      <button type="submit" style="background:#16a34a; margin-top: 1.5rem;">Save & Sync to Cloud</button>
-    </form>
+      <form id="intake-form">
+        <h4 style="margin: 0 0 0.75rem 0; color: #475569; text-transform: uppercase; font-size: 0.78rem; letter-spacing: 0.05em;">1. Insurance & Contacts</h4>
+        <div class="grid-2">
+          <div class="form-group"><label>Insurance Carrier</label><input type="text" id="ins-provider" placeholder="e.g. Sagicor / Guardian Life"></div>
+          <div class="form-group"><label>Policy Number</label><input type="text" id="ins-policy" placeholder="POL-992019"></div>
+        </div>
+        <div class="form-group"><label>Emergency Contact & Phone</label><input type="text" id="emergency" placeholder="Name - (868) 555-0192" required></div>
+
+        <h4 style="margin: 1.5rem 0 0.75rem 0; color: #475569; text-transform: uppercase; font-size: 0.78rem; letter-spacing: 0.05em;">2. Medical Alerts</h4>
+        <div class="form-group"><label>Allergies (comma separated)</label><input type="text" id="allergies" placeholder="Penicillin, NSAIDs, Peanuts"></div>
+        <div class="form-group"><label>Chronic Conditions</label><input type="text" id="conditions" placeholder="Hypertension, Asthma, Type 2 Diabetes"></div>
+
+        <h4 style="margin: 1.5rem 0 0.2rem 0; color: #475569; text-transform: uppercase; font-size: 0.78rem; letter-spacing: 0.05em;">3. Medical Records Archive</h4>
+        <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0;">Upload scans or lab results directly into their respective clinic folders.</p>
+
+        <div class="folder-grid">
+          <div class="folder-card"><div class="folder-header">📝 Doctor's Clinical Notes</div><input type="file" id="file-doc-notes" accept="image/*,.pdf"><div id="status-doc-notes" class="file-badge"></div></div>
+          <div class="folder-card"><div class="folder-header">🩸 Laboratory & Blood Tests</div><input type="file" id="file-blood-tests" accept="image/*,.pdf"><div id="status-blood-tests" class="file-badge"></div></div>
+          <div class="folder-card"><div class="folder-header">🦴 Radiology / X-Ray</div><input type="file" id="file-xray" accept="image/*,.pdf"><div id="status-xray" class="file-badge"></div></div>
+          <div class="folder-card"><div class="folder-header">🧠 CT Scans & MRI</div><input type="file" id="file-ct-scans" accept="image/*,.pdf"><div id="status-ct-scans" class="file-badge"></div></div>
+          <div class="folder-card"><div class="folder-header">📡 Ultrasound Diagnostics</div><input type="file" id="file-ultrasound" accept="image/*,.pdf"><div id="status-ultrasound" class="file-badge"></div></div>
+          <div class="folder-card"><div class="folder-header">❤️ Cardiology & ECG</div><input type="file" id="file-cardiology" accept="image/*,.pdf"><div id="status-cardiology" class="file-badge"></div></div>
+        </div>
+
+        <button type="submit" class="btn btn-success" style="margin-top: 2rem;">💾 Save & Cloud-Sync Profile</button>
+      </form>
+    </div>
   </div>
 
   <script>
     const API_URL = "https://medical-nfc-backend.onrender.com/api";
     let currentUser = null;
+    let currentResetToken = null;
+
+    window.addEventListener('DOMContentLoaded', () => {
+      const urlParams = new URLSearchParams(window.location.search);
+      const token = urlParams.get('resetToken');
+      if (token) {
+        currentResetToken = token;
+        showAuthTab('token-reset');
+      }
+    });
 
     function showAuthTab(tab) {
       document.getElementById('register-form').style.display = 'none';
       document.getElementById('login-form').style.display = 'none';
       document.getElementById('forgot-form').style.display = 'none';
+      document.getElementById('token-reset-form').style.display = 'none';
       document.getElementById('tab-reg-btn').classList.remove('active');
       document.getElementById('tab-login-btn').classList.remove('active');
       document.getElementById('tab-header').style.display = 'flex';
@@ -145,6 +274,9 @@
         document.getElementById('tab-login-btn').classList.add('active');
       } else if (tab === 'forgot') {
         document.getElementById('forgot-form').style.display = 'block';
+        document.getElementById('tab-header').style.display = 'none';
+      } else if (tab === 'token-reset') {
+        document.getElementById('token-reset-form').style.display = 'block';
         document.getElementById('tab-header').style.display = 'none';
       }
     }
@@ -164,15 +296,14 @@
       if (user.emergencyContact) document.getElementById('emergency').value = user.emergencyContact;
 
       const docs = user.document || {};
-      if (docs.doctorNotes) document.getElementById('status-doc-notes').innerText = `✓ On File: ${docs.doctorNotes.name}`;
-      if (docs.bloodTests) document.getElementById('status-blood-tests').innerText = `✓ On File: ${docs.bloodTests.name}`;
-      if (docs.xray) document.getElementById('status-xray').innerText = `✓ On File: ${docs.xray.name}`;
-      if (docs.ctScans) document.getElementById('status-ct-scans').innerText = `✓ On File: ${docs.ctScans.name}`;
-      if (docs.ultrasound) document.getElementById('status-ultrasound').innerText = `✓ On File: ${docs.ultrasound.name}`;
-      if (docs.cardiology) document.getElementById('status-cardiology').innerText = `✓ On File: ${docs.cardiology.name}`;
+      if (docs.doctorNotes) document.getElementById('status-doc-notes').innerText = `✓ File on record: ${docs.doctorNotes.name}`;
+      if (docs.bloodTests) document.getElementById('status-blood-tests').innerText = `✓ File on record: ${docs.bloodTests.name}`;
+      if (docs.xray) document.getElementById('status-xray').innerText = `✓ File on record: ${docs.xray.name}`;
+      if (docs.ctScans) document.getElementById('status-ct-scans').innerText = `✓ File on record: ${docs.ctScans.name}`;
+      if (docs.ultrasound) document.getElementById('status-ultrasound').innerText = `✓ File on record: ${docs.ultrasound.name}`;
+      if (docs.cardiology) document.getElementById('status-cardiology').innerText = `✓ File on record: ${docs.cardiology.name}`;
     }
 
-    // Handle Register
     document.getElementById('register-form').addEventListener('submit', async (e) => {
       e.preventDefault();
       const payload = {
@@ -189,15 +320,10 @@
         body: JSON.stringify(payload)
       });
       const data = await res.json();
-
-      if (data.success) {
-        populateIntakeForm(data.user);
-      } else {
-        alert(data.error);
-      }
+      if (data.success) populateIntakeForm(data.user);
+      else alert(data.error);
     });
 
-    // Handle Login
     document.getElementById('login-form').addEventListener('submit', async (e) => {
       e.preventDefault();
       const payload = {
@@ -211,33 +337,49 @@
         body: JSON.stringify(payload)
       });
       const data = await res.json();
+      if (data.success) populateIntakeForm(data.user);
+      else alert(data.error);
+    });
+
+    document.getElementById('forgot-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById('btn-send-email');
+      btn.innerText = "Dispatching...";
+      btn.disabled = true;
+
+      const email = document.getElementById('reset-request-email').value;
+      const res = await fetch(`${API_URL}/patient/forgot-password`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email })
+      });
+      const data = await res.json();
+      btn.innerText = "Dispatch Reset Link ✉️";
+      btn.disabled = false;
 
       if (data.success) {
-        populateIntakeForm(data.user);
+        alert(data.message);
+        showAuthTab('login');
       } else {
         alert(data.error);
       }
     });
 
-    // Handle Forgot / Reset Password
-    document.getElementById('forgot-form').addEventListener('submit', async (e) => {
+    document.getElementById('token-reset-form').addEventListener('submit', async (e) => {
       e.preventDefault();
-      const payload = {
-        email: document.getElementById('reset-email').value,
-        newPassword: document.getElementById('reset-new-pass').value
-      };
+      const newPassword = document.getElementById('token-new-pass').value;
 
-      const res = await fetch(`${API_URL}/patient/reset-password`, {
+      const res = await fetch(`${API_URL}/patient/reset-password-with-token`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
+        body: JSON.stringify({ token: currentResetToken, newPassword })
       });
       const data = await res.json();
 
       if (data.success) {
         alert(data.message);
+        window.history.replaceState({}, document.title, window.location.pathname);
         showAuthTab('login');
-        document.getElementById('login-email').value = payload.email;
       } else {
         alert(data.error);
       }
@@ -253,10 +395,8 @@
       });
     }
 
-    // Handle Intake & Document Save
     document.getElementById('intake-form').addEventListener('submit', async (e) => {
       e.preventDefault();
-
       const existingDocs = (currentUser && currentUser.document) || {};
 
       const documents = {
@@ -290,7 +430,7 @@
       if (data.success) {
         currentUser = data.user;
         populateIntakeForm(data.user);
-        alert("Your medical records and documents have been synced to the cloud successfully!");
+        alert("✨ Your medical records and documents have been saved successfully!");
       } else {
         alert("Error saving record: " + (data.error || "Please try again."));
       }
