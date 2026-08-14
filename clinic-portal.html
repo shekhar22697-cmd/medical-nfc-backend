@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Shekhar and Vinayak's Clinic Reception Portal</title>
+  <style>
+    body { font-family: sans-serif; max-width: 600px; margin: 2rem auto; padding: 1rem; background: #f0f9ff; color: #0f172a; }
+    .card { background: white; padding: 1.5rem; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); margin-bottom: 1.5rem; }
+    button { background: #0284c7; color: white; padding: 0.8rem; border: none; border-radius: 6px; font-weight: bold; width: 100%; cursor: pointer; font-size: 1rem; }
+    .link-section { background: #fffbe0; border: 1px solid #ffe58f; padding: 1rem; border-radius: 8px; }
+    .doc-link { display: inline-block; margin-top: 0.4rem; background: #e0f2fe; color: #0284c7; padding: 0.4rem 0.8rem; border-radius: 4px; text-decoration: none; font-weight: bold; }
+  </style>
+</head>
+<body>
+
+  <h1 style="color:#0284c7; font-size: 1.4rem;">🏥 Shekhar and Vinayak's Test Portal (and Randhir)</h1>
+  <p style="color:#64748b; margin-top:-0.5rem;">Reception NFC Check-In Desk</p>
+
+  <div class="card">
+    <button id="scan-btn">Tap / Scan Patient NFC Card</button>
+    <div id="status" style="margin-top: 0.6rem; color: #64748b; font-size: 0.9rem;">Waiting for card tap...</div>
+  </div>
+
+  <div class="card" id="display-box" style="display:none; border-left: 5px solid #0284c7;">
+    <h2 id="patient-name" style="margin-top:0;">Patient Name</h2>
+    <p><b>DOB & Blood:</b> <span id="meta"></span></p>
+    <p><b>Insurance:</b> <span id="insurance" style="color:#16a34a; font-weight:bold;"></span></p>
+    <p><b>Allergies:</b> <span id="allergies" style="color:#ef4444; font-weight:bold;"></span></p>
+    <p><b>Chronic Conditions:</b> <span id="conditions"></span></p>
+    <p><b>Emergency Contact:</b> <span id="emergency"></span></p>
+    <div id="doc-link"></div>
+  </div>
+
+  <div class="card link-section">
+    <h3 style="margin-top:0;">🔗 Link Physical NFC Card to Patient Account</h3>
+    <input type="text" id="link-email" placeholder="Patient Email" style="width: 60%; padding: 0.5rem; margin-bottom: 0.5rem;">
+    <input type="text" id="link-card-id" placeholder="Card ID (e.g. PATIENT-001)" style="width: 35%; padding: 0.5rem; margin-bottom: 0.5rem;">
+    <button onclick="linkCard()" style="background: #16a34a;">Link Card to Patient</button>
+  </div>
+
+  <script>
+    // LIVE RENDER BACKEND URL
+    const API_URL = "https://medical-nfc-backend.onrender.com/api";
+
+    document.getElementById('scan-btn').addEventListener('click', async () => {
+      if (!('NDEFReader' in window)) {
+        const testId = prompt("Web NFC not supported in this browser. Enter Card ID to test:", "PATIENT-001");
+        if (testId) fetchCardData(testId);
+        return;
+      }
+
+      try {
+        const ndef = new NDEFReader();
+        await ndef.scan();
+        document.getElementById('status').innerText = "Scanning active... Touch card to back of phone.";
+
+        ndef.addEventListener("reading", ({ message, serialNumber }) => {
+          let cardId = "";
+          for (const record of message.records) {
+            const textDecoder = new TextDecoder(record.encoding);
+            cardId = textDecoder.decode(record.data).trim();
+          }
+          if (!cardId) cardId = serialNumber;
+
+          document.getElementById('status').innerText = "Read Card: " + cardId;
+          fetchCardData(cardId);
+        });
+      } catch (err) {
+        document.getElementById('status').innerText = "Error: " + err.message;
+      }
+    });
+
+    async function fetchCardData(cardId) {
+      const res = await fetch(`${API_URL}/clinic/scan/${cardId}`);
+      const result = await res.json();
+
+      if (result.success) {
+        const p = result.patient;
+        document.getElementById('display-box').style.display = 'block';
+        document.getElementById('patient-name').innerText = p.name;
+        document.getElementById('meta').innerText = `${p.dob} | Blood: ${p.bloodType}`;
+        document.getElementById('insurance').innerText = p.insurance && p.insurance.provider ? `${p.insurance.provider} (Policy: ${p.insurance.policy})` : "Self-Pay / None";
+        document.getElementById('allergies').innerText = p.allergies && p.allergies.length ? p.allergies.join(', ') : 'None';
+        document.getElementById('conditions').innerText = p.conditions && p.conditions.length ? p.conditions.join(', ') : 'None';
+        document.getElementById('emergency').innerText = p.emergencyContact || 'None';
+
+        if (p.document && p.document.data) {
+  // Convert base64 data to a Blob URL so the browser doesn't block it
+  const byteString = atob(p.document.data.split(',')[1]);
+  const mimeString = p.document.data.split(',')[0].split(':')[1].split(';')[0];
+  const ab = new ArrayBuffer(byteString.length);
+  const ia = new Uint8Array(ab);
+  for (let i = 0; i < byteString.length; i++) {
+    ia[i] = byteString.charCodeAt(i);
+  }
+  const blob = new Blob([ab], { type: mimeString });
+  const fileBlobUrl = URL.createObjectURL(blob);
+
+  // Generates both a viewable link and a download link
+  document.getElementById('doc-link').innerHTML = `
+    <a href="${fileBlobUrl}" target="_blank" class="doc-link">📄 View Document (${p.document.name})</a>
+    <a href="${fileBlobUrl}" download="${p.document.name}" class="doc-link" style="background:#e2e8f0; color:#334155; margin-left:0.5rem;">⬇️ Download</a>
+  `;
+} else {
+  document.getElementById('doc-link').innerText = "No document attached.";
+}
+      } else {
+        alert(result.error);
+      }
+    }
+
+    async function linkCard() {
+      const email = document.getElementById('link-email').value.trim();
+      const cardId = document.getElementById('link-card-id').value.trim();
+
+      const res = await fetch(`${API_URL}/clinic/link-card`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, cardId })
+      });
+      const data = await res.json();
+      alert(data.message || data.error);
+    }
+  </script>
+</body>
+</html>

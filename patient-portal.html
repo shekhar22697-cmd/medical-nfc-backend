@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Patient Online Intake Portal</title>
+  <style>
+    body { font-family: sans-serif; max-width: 500px; margin: 2rem auto; padding: 1rem; background: #f8fafc; color: #0f172a; }
+    .card { background: white; padding: 1.5rem; border-radius: 8px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); margin-bottom: 1rem; }
+    .form-group { margin-bottom: 1rem; }
+    label { display: block; font-weight: bold; margin-bottom: 0.3rem; font-size: 0.85rem; color: #475569; }
+    input, select { width: 100%; padding: 0.6rem; box-sizing: border-box; border: 1px solid #cbd5e1; border-radius: 4px; font-size: 0.95rem; }
+    button { width: 100%; background: #0284c7; color: white; padding: 0.8rem; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 1rem; }
+  </style>
+</head>
+<body>
+
+  <div class="card" id="auth-box">
+    <h2 style="margin-top:0; color:#0284c7;">🏥 Create Patient Account</h2>
+    <form id="register-form">
+      <div class="form-group"><label>Email Address</label><input type="email" id="reg-email" placeholder="jane@example.com" required></div>
+      <div class="form-group"><label>Password</label><input type="password" id="reg-pass" required></div>
+      <div class="form-group"><label>Full Name</label><input type="text" id="reg-name" placeholder="Jane Doe" required></div>
+      <div class="form-group"><label>Date of Birth</label><input type="text" id="reg-dob" placeholder="May 14, 1992" required></div>
+      <div class="form-group"><label>Blood Type</label>
+        <select id="reg-blood"><option>O+</option><option>O-</option><option>A+</option><option>A-</option><option>B+</option><option>AB+</option></select>
+      </div>
+      <button type="submit">Register & Continue to Intake</button>
+    </form>
+  </div>
+
+  <div class="card" id="intake-box" style="display:none;">
+    <h2 style="margin-top:0; color:#0284c7;">📝 Medical & Insurance Intake</h2>
+    <form id="intake-form">
+      <div class="form-group"><label>Insurance Provider</label><input type="text" id="ins-provider" placeholder="e.g. Sagicor / Guardian Life"></div>
+      <div class="form-group"><label>Policy Number</label><input type="text" id="ins-policy" placeholder="POL-882019"></div>
+      <div class="form-group"><label>Severe Allergies (comma separated)</label><input type="text" id="allergies" placeholder="Penicillin, Peanuts"></div>
+      <div class="form-group"><label>Chronic Conditions</label><input type="text" id="conditions" placeholder="Asthma, Diabetes"></div>
+      <div class="form-group"><label>Emergency Contact</label><input type="text" id="emergency" placeholder="John Doe - 555-0192" required></div>
+      <div class="form-group"><label>Upload Lab PDF / Medical Document</label><input type="file" id="doc-file" accept="image/*,.pdf"></div>
+      <button type="submit" style="background:#16a34a">Save Profile to Cloud</button>
+    </form>
+  </div>
+
+  <script>
+    // LIVE RENDER BACKEND URL
+    const API_URL = "https://medical-nfc-backend.onrender.com/api";
+    let currentUserEmail = "";
+
+    document.getElementById('register-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      currentUserEmail = document.getElementById('reg-email').value;
+
+      const payload = {
+        email: currentUserEmail,
+        password: document.getElementById('reg-pass').value,
+        name: document.getElementById('reg-name').value,
+        dob: document.getElementById('reg-dob').value,
+        bloodType: document.getElementById('reg-blood').value
+      };
+
+      const res = await fetch(`${API_URL}/patient/register`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      const data = await res.json();
+
+      if (data.success) {
+        document.getElementById('auth-box').style.display = 'none';
+        document.getElementById('intake-box').style.display = 'block';
+      } else {
+        alert(data.error);
+      }
+    });
+
+    document.getElementById('intake-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const fileInput = document.getElementById('doc-file');
+      let docData = null;
+
+      if (fileInput.files.length > 0) {
+        docData = await new Promise((resolve) => {
+          const reader = new FileReader();
+          reader.readAsDataURL(fileInput.files[0]);
+          reader.onload = () => resolve({ name: fileInput.files[0].name, data: reader.result });
+        });
+      }
+
+      const payload = {
+        email: currentUserEmail,
+        insurance: {
+          provider: document.getElementById('ins-provider').value,
+          policy: document.getElementById('ins-policy').value
+        },
+        allergies: document.getElementById('allergies').value.split(',').filter(a => a.trim() !== ''),
+        conditions: document.getElementById('conditions').value.split(',').filter(c => c.trim() !== ''),
+        emergencyContact: document.getElementById('emergency').value,
+        document: docData
+      };
+
+      await fetch(`${API_URL}/patient/update-profile`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+
+      alert("Your record is saved to the cloud! When you arrive at the clinic, tap your NFC card to check in.");
+    });
+  </script>
+</body>
+</html>
