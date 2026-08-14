@@ -7,6 +7,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <!-- QR Code Library for Digital Pass -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
   <style>
     :root {
       --primary: #0284c7;
@@ -15,9 +17,7 @@
       --text: #0f172a;
       --text-muted: #64748b;
       --border: #e2e8f0;
-      --danger: #ef4444;
-      --success: #10b981;
-      --radius: 12px;
+      --radius: 14px;
       --shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.06), 0 8px 10px -6px rgba(15, 23, 42, 0.04);
     }
 
@@ -62,18 +62,47 @@
     .btn:hover { filter: brightness(1.05); }
     .btn-success { background: linear-gradient(135deg, #10b981, #059669); box-shadow: 0 4px 12px rgba(16, 185, 129, 0.25); }
 
-    /* ID Banner */
-    .id-badge-banner {
-      background: linear-gradient(135deg, #0284c7, #0369a1);
+    /* =========================================
+       DIGITAL NFC / VIRTUAL HEALTH PASS STYLES
+       ========================================= */
+    .digital-card {
+      background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0369a1 100%);
+      border-radius: 18px;
       color: white;
-      padding: 1.25rem;
-      border-radius: 10px;
+      padding: 1.75rem;
+      box-shadow: 0 15px 30px -5px rgba(2, 132, 199, 0.4);
+      position: relative;
+      overflow: hidden;
       margin-bottom: 1.5rem;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
+      border: 1px solid rgba(255, 255, 255, 0.15);
     }
-    .id-badge-number { font-size: 1.6rem; font-weight: 800; font-family: monospace; }
+    .digital-card::after {
+      content: '';
+      position: absolute;
+      top: -50%;
+      right: -50%;
+      width: 100%;
+      height: 100%;
+      background: radial-gradient(circle, rgba(255,255,255,0.08) 0%, transparent 60%);
+      transform: rotate(30deg);
+      pointer-events: none;
+    }
+    .card-top { display: flex; justify-content: space-between; align-items: flex-start; }
+    .card-chip { width: 44px; height: 32px; background: linear-gradient(135deg, #fbbf24, #d97706); border-radius: 6px; position: relative; }
+    .card-chip::before { content: ''; position: absolute; top: 12px; left: 0; right: 0; height: 8px; border-top: 1px solid rgba(0,0,0,0.2); border-bottom: 1px solid rgba(0,0,0,0.2); }
+    
+    .card-body-flex { display: flex; justify-content: space-between; align-items: center; margin-top: 1.25rem; gap: 1rem; }
+    .card-patient-name { font-size: 1.35rem; font-weight: 800; letter-spacing: -0.01em; margin: 0 0 0.3rem 0; }
+    .card-meta-text { font-size: 0.82rem; opacity: 0.85; margin-bottom: 0.2rem; }
+    .card-id-highlight { font-size: 1.2rem; font-weight: 800; font-family: monospace; color: #38bdf8; }
+
+    .qr-container {
+      background: white;
+      padding: 8px;
+      border-radius: 10px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.25);
+      display: inline-block;
+    }
 
     /* Kill Switch Box */
     .freeze-box {
@@ -87,11 +116,8 @@
       margin-bottom: 1.5rem;
     }
 
-    /* Consent Toggles */
     .consent-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-top: 0.5rem; }
     .consent-item { background: #f8fafc; border: 1px solid var(--border); padding: 0.6rem 0.8rem; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; font-weight: 600; }
-
-    /* Audit Logs */
     .audit-item { background: #f8fafc; border-left: 3px solid var(--primary); padding: 0.6rem 0.85rem; border-radius: 4px; margin-bottom: 0.5rem; font-size: 0.82rem; }
 
     .folder-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem; margin-top: 1rem; }
@@ -104,7 +130,7 @@
   <div class="container">
     <div class="brand-header">
       <h1 class="brand-title">Shekhar, Vinayak & Randhir Patient Portal</h1>
-      <p style="color:var(--text-muted); font-size:0.85rem; margin-top:0.2rem;">Personal Health Records & Security Shield</p>
+      <p style="color:var(--text-muted); font-size:0.85rem; margin-top:0.2rem;">Personal Health Records & Contactless Digital Pass</p>
     </div>
 
     <!-- Auth Card -->
@@ -114,7 +140,7 @@
         <button class="tab-btn" id="tab-login-btn" onclick="showAuthTab('login')">Patient Sign In</button>
       </div>
 
-      <!-- Register -->
+      <!-- Register Form -->
       <form id="register-form">
         <div class="form-group"><label>Full Legal Name</label><input type="text" id="reg-name" placeholder="Jane Doe" required></div>
         <div class="grid-2">
@@ -129,10 +155,10 @@
           <div class="form-group"><label>4-Digit Security PIN</label><input type="password" id="reg-pin" placeholder="e.g. 5821" maxlength="4" required></div>
         </div>
         <div class="form-group"><label>Account Password</label><input type="password" id="reg-pass" placeholder="••••••••" required></div>
-        <button type="submit" class="btn">Register & Secure My Record →</button>
+        <button type="submit" class="btn">Register & Issue Digital Health Pass →</button>
       </form>
 
-      <!-- Login -->
+      <!-- Login Form -->
       <form id="login-form" style="display:none;">
         <div class="form-group"><label>Account Email</label><input type="email" id="login-email" placeholder="jane@example.com" required></div>
         <div class="form-group">
@@ -162,22 +188,43 @@
     <!-- Patient Dashboard -->
     <div id="patient-dashboard" style="display:none;">
       
-      <!-- Top Patient Banner -->
-      <div class="id-badge-banner">
-        <div>
-          <span style="font-size:0.75rem; text-transform:uppercase; letter-spacing:0.08em;">Official Patient ID</span>
-          <div class="id-badge-number" id="display-patient-id">#1</div>
+      <!-- =========================================
+           VIRTUAL DIGITAL HEALTH PASS / BADGE
+           ========================================= -->
+      <div class="digital-card">
+        <div class="card-top">
+          <div style="display:flex; align-items:center; gap:0.75rem;">
+            <div class="card-chip"></div>
+            <div>
+              <div style="font-size:0.7rem; text-transform:uppercase; letter-spacing:0.1em; opacity:0.8;">Virtual Contactless Pass</div>
+              <div style="font-size:0.85rem; font-weight:700;">Shekhar, Vinayak & Randhir Health</div>
+            </div>
+          </div>
+          <div style="font-size:1.4rem;">📡</div>
         </div>
-        <div style="text-align:right;">
-          <button onclick="location.reload()" style="background:rgba(255,255,255,0.2); color:white; border:none; padding:0.4rem 0.8rem; border-radius:6px; font-weight:700; cursor:pointer; font-size:0.8rem;">Log Out</button>
+
+        <div class="card-body-flex">
+          <div>
+            <div class="card-patient-name" id="card-name">Patient Name</div>
+            <div class="card-meta-text">DOB: <span id="card-dob">--</span> | Blood: <span id="card-blood" style="color:#f87171; font-weight:800;">O+</span></div>
+            <div class="card-meta-text">Emergency: <span id="card-emergency">--</span></div>
+            <div style="margin-top:0.6rem;">
+              <span style="font-size:0.75rem; opacity:0.8;">PATIENT ID:</span>
+              <div class="card-id-highlight" id="card-id">#1</div>
+            </div>
+          </div>
+          <div style="text-align:center;">
+            <div class="qr-container" id="qrcode-box"></div>
+            <div style="font-size:0.68rem; margin-top:0.3rem; opacity:0.85;">Scan at Clinic Desk</div>
+          </div>
         </div>
       </div>
 
-      <!-- 1. Instant Card Freeze Switch (Kill Switch) -->
+      <!-- Instant Card Freeze Switch -->
       <div class="freeze-box">
         <div>
           <b style="color:#991b1b; font-size:0.95rem;">🔒 Instant Physical Card Freeze (Kill Switch)</b>
-          <div style="font-size:0.8rem; color:#7f1d1d;">Instantly blocks physical NFC card taps if card is lost or stolen.</div>
+          <div style="font-size:0.8rem; color:#7f1d1d;">Blocks physical NFC taps immediately if your badge is lost.</div>
         </div>
         <div>
           <button id="freeze-btn" onclick="toggleCardFreeze()" style="background:#dc2626; color:white; border:none; padding:0.5rem 1rem; border-radius:6px; font-weight:800; cursor:pointer; font-size:0.85rem;">
@@ -196,7 +243,7 @@
       <!-- Tab A: Intake & Uploads -->
       <div class="card" id="dash-tab-records">
         <form id="intake-form">
-          <h4 style="margin:0 0 0.75rem 0; color:#475569; text-transform:uppercase; font-size:0.78rem;">1. Insurance & Contacts</h4>
+          <h4 style="margin:0 0 0.75rem 0; color:#475569; text-transform:uppercase; font-size:0.78rem;">1. Insurance & Emergency Contacts</h4>
           <div class="grid-2">
             <div class="form-group"><label>Insurance Carrier</label><input type="text" id="ins-provider" placeholder="e.g. Sagicor / Guardian Life"></div>
             <div class="form-group"><label>Policy Number</label><input type="text" id="ins-policy" placeholder="POL-992019"></div>
@@ -221,19 +268,15 @@
         </form>
       </div>
 
-      <!-- Tab B: Doctor's Encounter & Prescriptions History -->
+      <!-- Tab B: Doctor's Encounter & Prescriptions -->
       <div class="card" id="dash-tab-doctor" style="display:none;">
         <h3 style="margin-top:0; font-size:1.1rem; color:var(--primary);">📋 Latest Clinical Visits & Prescriptions</h3>
-        <div id="patient-rx-display" style="font-size:0.9rem; color:var(--text-muted);">
-          No doctor visits recorded yet.
-        </div>
+        <div id="patient-rx-display" style="font-size:0.9rem; color:var(--text-muted);">No doctor visits recorded yet.</div>
       </div>
 
       <!-- Tab C: Privacy Toggles & Live Audit Trail -->
       <div class="card" id="dash-tab-privacy" style="display:none;">
         <h3 style="margin-top:0; font-size:1.1rem; color:var(--primary);">🛡️ Security PIN & Folder Consent Controls</h3>
-        <p style="font-size:0.85rem; color:var(--text-muted); margin-top:-0.3rem;">Choose which folders are unlocked for clinics upon providing your 4-digit PIN.</p>
-        
         <div class="form-group" style="max-width:240px;">
           <label>4-Digit Security PIN</label>
           <input type="password" id="priv-pin" maxlength="4" placeholder="••••">
@@ -252,7 +295,6 @@
         <button onclick="savePrivacySettings()" class="btn" style="margin-top:1rem; width:auto; padding:0.6rem 1.2rem; font-size:0.85rem;">Update Security Controls</button>
 
         <h3 style="margin-top:2rem; font-size:1.1rem; color:var(--primary);">📜 Live Access Audit Log</h3>
-        <p style="font-size:0.82rem; color:var(--text-muted); margin-top:-0.3rem;">Full transparency on when and where your record was checked in.</p>
         <div id="audit-log-container"></div>
       </div>
 
@@ -263,6 +305,7 @@
     const API_URL = "https://medical-nfc-backend.onrender.com/api";
     let currentUser = null;
     let currentResetToken = null;
+    let qrCodeInstance = null;
 
     window.addEventListener('DOMContentLoaded', () => {
       const urlParams = new URLSearchParams(window.location.search);
@@ -310,9 +353,26 @@
       currentUser = user;
       document.getElementById('auth-box').style.display = 'none';
       document.getElementById('patient-dashboard').style.display = 'block';
-      document.getElementById('display-patient-id').innerText = `#${user.patientId}`;
 
-      // Update Freeze Button
+      // 1. Populate Virtual Digital Health Pass
+      document.getElementById('card-name').innerText = user.name;
+      document.getElementById('card-dob').innerText = user.dob;
+      document.getElementById('card-blood').innerText = user.bloodType;
+      document.getElementById('card-emergency').innerText = user.emergencyContact || 'None';
+      document.getElementById('card-id').innerText = `ID #${user.patientId}`;
+
+      // Generate Live Dynamic QR Code
+      const qrBox = document.getElementById('qrcode-box');
+      qrBox.innerHTML = '';
+      qrCodeInstance = new QRCode(qrBox, {
+        text: `PATIENT_ID:${user.patientId}`,
+        width: 80,
+        height: 80,
+        colorDark : "#0f172a",
+        colorLight : "#ffffff",
+        correctLevel : QRCode.CorrectLevel.M
+      });
+
       updateFreezeButtonState(user.cardFrozen);
 
       // Populate Intake
@@ -333,7 +393,7 @@
       if (docs.ultrasound) document.getElementById('status-ultrasound').innerText = `✓ File: ${docs.ultrasound.name}`;
       if (docs.cardiology) document.getElementById('status-cardiology').innerText = `✓ File: ${docs.cardiology.name}`;
 
-      // Populate Doctor's Notes Tab
+      // Doctor's Rx Tab
       const rxBox = document.getElementById('patient-rx-display');
       if (user.consultation || user.vitals) {
         rxBox.innerHTML = `
@@ -351,7 +411,7 @@
         rxBox.innerText = "No doctor visit records or prescriptions logged yet.";
       }
 
-      // Populate Privacy & Audit
+      // Privacy & Audit
       document.getElementById('priv-pin').value = user.pin || "1234";
       if (user.privacySettings) {
         document.getElementById('c-doc').checked = user.privacySettings.doctorNotes;

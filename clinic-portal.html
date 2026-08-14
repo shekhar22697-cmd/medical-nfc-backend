@@ -7,6 +7,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <!-- HTML5 QR / Barcode Scanner Library -->
+  <script src="https://unpkg.com/html5-qrcode"></script>
   <style>
     :root {
       --primary: #0284c7;
@@ -59,10 +61,12 @@
       background: linear-gradient(135deg, var(--primary), var(--primary-dark)); color: white; box-shadow: 0 4px 12px rgba(2, 132, 199, 0.25);
     }
 
+    .dual-scan-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-bottom: 1rem; }
     .scan-btn {
-      width: 100%; padding: 1.1rem; border-radius: 10px; border: none; font-size: 1.05rem; font-weight: 800; cursor: pointer; font-family: inherit;
-      background: linear-gradient(135deg, #0284c7, #0d9488); color: white; box-shadow: 0 4px 14px rgba(2, 132, 199, 0.25); display: flex; align-items: center; justify-content: center; gap: 0.6rem;
+      padding: 1rem; border-radius: 10px; border: none; font-size: 0.95rem; font-weight: 800; cursor: pointer; font-family: inherit;
+      background: linear-gradient(135deg, #0284c7, #0d9488); color: white; box-shadow: 0 4px 14px rgba(2, 132, 199, 0.25); display: flex; align-items: center; justify-content: center; gap: 0.5rem;
     }
+    .scan-btn.camera { background: linear-gradient(135deg, #0f172a, #334155); }
 
     .or-divider {
       display: flex; align-items: center; text-align: center; margin: 1.25rem 0; color: var(--text-muted); font-size: 0.8rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em;
@@ -76,6 +80,11 @@
 
     .status-pill {
       margin-top: 1rem; padding: 0.6rem 1rem; background: #f8fafc; border-radius: 8px; font-size: 0.85rem; color: var(--text-muted); display: flex; align-items: center; gap: 0.5rem; justify-content: center; border: 1px solid var(--border);
+    }
+
+    /* Camera Scanner Viewport */
+    #reader-container {
+      display: none; background: #f8fafc; border: 2px dashed #0284c7; border-radius: 10px; padding: 1rem; margin-top: 1rem; text-align: center;
     }
 
     .queue-table { width: 100%; border-collapse: collapse; margin-top: 0.75rem; font-size: 0.88rem; }
@@ -97,7 +106,6 @@
     .data-label { font-weight: 700; color: #64748b; }
     .tag-danger { background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; padding: 0.15rem 0.5rem; border-radius: 4px; font-weight: 600; font-size: 0.8rem; display: inline-block; margin-right: 0.3rem; margin-bottom: 0.2rem; }
 
-    /* PIN Lock Card for Archives */
     .pin-lock-card {
       background: #f8fafc; border: 2px dashed #cbd5e1; border-radius: 10px; padding: 1.25rem; text-align: center; margin-top: 1rem;
     }
@@ -125,7 +133,7 @@
 
     @media print {
       body { background: white; padding: 0; }
-      .no-print, .scan-btn, .status-pill, .desk-header, .queue-card, .link-section, button, #facility-auth-card, .search-box, .or-divider, .top-nav, .modal-overlay, .pin-lock-card { display: none !important; }
+      .no-print, .scan-btn, .status-pill, .desk-header, .queue-card, .link-section, button, #facility-auth-card, .search-box, .or-divider, .top-nav, .modal-overlay, .pin-lock-card, #reader-container, .dual-scan-grid { display: none !important; }
       .card { box-shadow: none; border: 1px solid #000; padding: 1.5rem; }
       #display-box { display: block !important; border-left: none !important; }
     }
@@ -166,9 +174,23 @@
         <button onclick="logoutClinic()" style="background:#f1f5f9; border:1px solid var(--border); padding:0.4rem 0.8rem; border-radius:6px; font-weight:700; font-size:0.8rem; cursor:pointer;">🔒 Lock / Sign Out</button>
       </div>
 
-      <!-- Check-In: NFC Tap OR Patient ID -->
+      <!-- Dual Check-In: Physical NFC Tap OR Camera Digital Pass Scanner -->
       <div class="card no-print">
-        <button id="scan-btn" class="scan-btn"><span>📡</span> Tap / Scan Patient NFC Tag</button>
+        <div class="dual-scan-grid">
+          <button id="scan-btn" class="scan-btn">
+            <span>📡</span> Physical NFC Card Tap
+          </button>
+          <button id="camera-scan-btn" onclick="toggleCameraScanner()" class="scan-btn camera">
+            <span>📷</span> Scan Digital Phone Pass
+          </button>
+        </div>
+
+        <!-- Camera Scanner Viewport -->
+        <div id="reader-container">
+          <div id="reader" style="width: 100%; max-width: 320px; margin: 0 auto;"></div>
+          <button onclick="stopCameraScanner()" style="margin-top:0.6rem; background:#ef4444; color:white; border:none; padding:0.4rem 0.8rem; border-radius:6px; font-size:0.8rem; cursor:pointer;">Close Camera</button>
+        </div>
+
         <div class="or-divider"><span>Or Patient ID Lookup</span></div>
         <form onsubmit="lookupByPatientId(event)" class="search-box">
           <input type="number" id="lookup-id-input" class="search-input" placeholder="Enter Patient ID Number (e.g. 1, 2, 3...)" min="1" required>
@@ -248,9 +270,8 @@
           </button>
         </form>
 
-        <!-- Tier 2 Locked Archives (Requires 4-Digit Security PIN) -->
+        <!-- Secure PIN Lock Section -->
         <div class="section-title">📁 Secure Patient Records Archive</div>
-        
         <div class="pin-lock-card no-print" id="pin-lock-section">
           <div style="font-weight:700; color:#0f172a; margin-bottom:0.3rem;">🔒 Full Medical Folders are Protected by Patient PIN</div>
           <p style="font-size:0.8rem; color:var(--text-muted); margin-top:0;">Request the patient's 4-digit Security PIN to decrypt and unlock imaging & lab records.</p>
@@ -318,6 +339,7 @@
     const API_URL = "https://medical-nfc-backend.onrender.com/api";
     let activePatient = null;
     let activeFacilityName = "Shekhar, Vinayak & Randhir Medical Center";
+    let html5QrScanner = null;
 
     window.addEventListener('DOMContentLoaded', () => {
       const savedClinic = sessionStorage.getItem('active_clinic_session');
@@ -415,7 +437,7 @@
       location.reload();
     }
 
-    // NFC Scan Handler
+    // 1. Physical NFC Scan Handler
     document.getElementById('scan-btn').addEventListener('click', async () => {
       if (!('NDEFReader' in window)) {
         const testId = prompt("Web NFC not available. Enter Card ID:", "PATIENT-001");
@@ -447,9 +469,65 @@
       }
     });
 
+    // 2. Camera QR Code Scanner Handler for Phone Passes
+    function toggleCameraScanner() {
+      const container = document.getElementById('reader-container');
+      container.style.display = 'block';
+
+      if (!html5QrScanner) {
+        html5QrScanner = new Html5Qrcode("reader");
+      }
+
+      html5QrScanner.start(
+        { facingMode: "environment" },
+        { fps: 10, qrbox: { width: 250, height: 250 } },
+        (decodedText) => {
+          // Success Callback
+          stopCameraScanner();
+          document.getElementById('status-icon').innerText = "📱";
+          document.getElementById('status-text').innerHTML = `Scanned Digital Pass: <b>${decodedText}</b>`;
+          
+          if (decodedText.startsWith("PATIENT_ID:")) {
+            const patientId = decodedText.split(":")[1];
+            fetchPatientById(patientId);
+          } else {
+            fetchPatientById(decodedText);
+          }
+        },
+        (error) => {}
+      ).catch(err => {
+        alert("Camera permission denied or camera not found.");
+        container.style.display = 'none';
+      });
+    }
+
+    function stopCameraScanner() {
+      if (html5QrScanner) {
+        html5QrScanner.stop().then(() => {
+          document.getElementById('reader-container').style.display = 'none';
+        }).catch(() => {
+          document.getElementById('reader-container').style.display = 'none';
+        });
+      } else {
+        document.getElementById('reader-container').style.display = 'none';
+      }
+    }
+
     async function fetchCardData(cardId) {
       try {
         const res = await fetch(`${API_URL}/clinic/scan/${cardId}?facility=${encodeURIComponent(activeFacilityName)}`);
+        const result = await res.json();
+        if (result.success) {
+          activePatient = result.patient;
+          renderPatientDetails(result.patient);
+          if (result.queue) renderQueue(result.queue);
+        } else alert(result.error);
+      } catch (err) { alert("Failed to communicate with cloud server."); }
+    }
+
+    async function fetchPatientById(id) {
+      try {
+        const res = await fetch(`${API_URL}/clinic/lookup-id/${encodeURIComponent(id)}?facility=${encodeURIComponent(activeFacilityName)}`);
         const result = await res.json();
         if (result.success) {
           activePatient = result.patient;
@@ -463,16 +541,7 @@
       e.preventDefault();
       const id = document.getElementById('lookup-id-input').value.trim();
       if (!id) return;
-
-      try {
-        const res = await fetch(`${API_URL}/clinic/lookup-id/${encodeURIComponent(id)}?facility=${encodeURIComponent(activeFacilityName)}`);
-        const result = await res.json();
-        if (result.success) {
-          activePatient = result.patient;
-          renderPatientDetails(result.patient);
-          if (result.queue) renderQueue(result.queue);
-        } else alert(result.error);
-      } catch (err) { alert("Failed to communicate with cloud server."); }
+      fetchPatientById(id);
     }
 
     function renderPatientDetails(p) {
@@ -497,7 +566,6 @@
       document.getElementById('conditions').innerText = p.conditions && p.conditions.length ? p.conditions.join(', ') : 'None';
       document.getElementById('emergency').innerText = p.emergencyContact || 'None on record';
 
-      // WhatsApp / Call Emergency Trigger Button
       const emergencyBtn = document.getElementById('emergency-action-btn');
       if (p.emergencyContact) {
         const cleanedNumber = p.emergencyContact.replace(/\D/g, '');
@@ -522,7 +590,6 @@
         `;
       } else document.getElementById('consultation-display').innerText = "No doctor notes recorded yet.";
 
-      // Reset archive lock
       document.getElementById('pin-lock-section').style.display = 'block';
       document.getElementById('folders-container').style.display = 'none';
       document.getElementById('patient-pin-input').value = '';
