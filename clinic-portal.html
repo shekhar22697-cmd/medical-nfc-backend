@@ -15,6 +15,8 @@
       --text: #0f172a;
       --text-muted: #64748b;
       --border: #e2e8f0;
+      --danger: #ef4444;
+      --success: #10b981;
       --radius: 12px;
       --shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.06), 0 8px 10px -6px rgba(15, 23, 42, 0.04);
     }
@@ -29,25 +31,10 @@
       color: var(--text);
     }
 
-    .container { max-width: 820px; margin: 0 auto; position: relative; }
+    .container { max-width: 820px; margin: 0 auto; }
     
-    /* Top Bar with Admin Button */
     .top-nav { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
-    .admin-badge-btn {
-      background: #0f172a;
-      color: white;
-      padding: 0.45rem 0.9rem;
-      border-radius: 8px;
-      font-size: 0.8rem;
-      font-weight: 700;
-      border: none;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      gap: 0.4rem;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.15);
-    }
-    .admin-badge-btn:hover { background: #1e293b; }
+    .admin-badge-btn { background: #0f172a; color: white; padding: 0.45rem 0.9rem; border-radius: 8px; font-size: 0.8rem; font-weight: 700; border: none; cursor: pointer; }
 
     .desk-header { text-align: center; margin-bottom: 1.5rem; }
     .desk-badge { display: inline-block; background: #e0f2fe; color: var(--primary-dark); padding: 0.35rem 0.85rem; border-radius: 50px; font-weight: 700; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.5rem; }
@@ -71,7 +58,6 @@
       width: 100%; padding: 0.85rem 1.25rem; border-radius: 8px; border: none; font-size: 0.95rem; font-weight: 700; cursor: pointer; font-family: inherit;
       background: linear-gradient(135deg, var(--primary), var(--primary-dark)); color: white; box-shadow: 0 4px 12px rgba(2, 132, 199, 0.25);
     }
-    .btn:hover { filter: brightness(1.05); }
 
     .scan-btn {
       width: 100%; padding: 1.1rem; border-radius: 10px; border: none; font-size: 1.05rem; font-weight: 800; cursor: pointer; font-family: inherit;
@@ -85,9 +71,8 @@
     .or-divider span { padding: 0 0.75rem; }
 
     .search-box { display: flex; gap: 0.5rem; }
-    .search-input { flex: 1; padding: 0.75rem 1rem; border: 1.5px solid var(--border); border-radius: 8px; font-size: 0.95rem; font-family: inherit; outline: none; }
-    .search-btn { padding: 0.75rem 1.25rem; background: #0f172a; color: white; border: none; border-radius: 8px; font-weight: 700; font-size: 0.9rem; cursor: pointer; }
-    .search-btn:hover { background: #1e293b; }
+    .search-input { flex: 1; padding: 0.75rem 1rem; border: 1.5px solid var(--border); border-radius: 8px; font-size: 0.95rem; }
+    .search-btn { padding: 0.75rem 1.25rem; background: #0f172a; color: white; border: none; border-radius: 8px; font-weight: 700; cursor: pointer; }
 
     .status-pill {
       margin-top: 1rem; padding: 0.6rem 1rem; background: #f8fafc; border-radius: 8px; font-size: 0.85rem; color: var(--text-muted); display: flex; align-items: center; gap: 0.5rem; justify-content: center; border: 1px solid var(--border);
@@ -112,6 +97,11 @@
     .data-label { font-weight: 700; color: #64748b; }
     .tag-danger { background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; padding: 0.15rem 0.5rem; border-radius: 4px; font-weight: 600; font-size: 0.8rem; display: inline-block; margin-right: 0.3rem; margin-bottom: 0.2rem; }
 
+    /* PIN Lock Card for Archives */
+    .pin-lock-card {
+      background: #f8fafc; border: 2px dashed #cbd5e1; border-radius: 10px; padding: 1.25rem; text-align: center; margin-top: 1rem;
+    }
+
     .folder-grid-display { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 0.75rem; margin-top: 1rem; }
     .folder-display-card { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 0.75rem 0.9rem; }
     .folder-title { font-weight: 700; font-size: 0.82rem; color: #334155; margin-bottom: 0.3rem; }
@@ -135,7 +125,7 @@
 
     @media print {
       body { background: white; padding: 0; }
-      .no-print, .scan-btn, .status-pill, .desk-header, .queue-card, .link-section, button, #facility-auth-card, .search-box, .or-divider, .top-nav, .modal-overlay { display: none !important; }
+      .no-print, .scan-btn, .status-pill, .desk-header, .queue-card, .link-section, button, #facility-auth-card, .search-box, .or-divider, .top-nav, .modal-overlay, .pin-lock-card { display: none !important; }
       .card { box-shadow: none; border: 1px solid #000; padding: 1.5rem; }
       #display-box { display: block !important; border-left: none !important; }
     }
@@ -144,8 +134,6 @@
 <body>
 
   <div class="container">
-    
-    <!-- Top Bar with Top-Right Admin Button -->
     <div class="top-nav no-print">
       <div style="font-size:0.85rem; font-weight:700; color:var(--text-muted);">🏥 Healthcare Terminal</div>
       <button class="admin-badge-btn" onclick="openAdminModal()">🔑 Master Admin</button>
@@ -156,25 +144,18 @@
       <h1 class="desk-title">Shekhar, Vinayak & Randhir Clinic Desk</h1>
     </div>
 
-    <!-- 1. MANDATORY FACILITY SIGN-IN (FOR CLINIC STAFF) -->
+    <!-- 1. MANDATORY FACILITY SIGN-IN -->
     <div class="card no-print" id="facility-auth-card">
       <form id="clinic-login-form" onsubmit="handleClinicLogin(event)">
         <h3 style="margin-top:0; color:var(--primary); font-size:1.15rem;">🏥 Facility Authentication Required</h3>
-        <p style="font-size:0.85rem; color:var(--text-muted); margin-top:-0.4rem;">Please sign in with your authorized clinic facility credentials.</p>
-        
-        <div class="form-group">
-          <label>Facility Email</label>
-          <input type="email" id="c-login-email" placeholder="admin@clinic.com" required>
-        </div>
-        <div class="form-group">
-          <label>Access Password</label>
-          <input type="password" id="c-login-pass" placeholder="••••••••" required>
-        </div>
-        <button type="submit" class="btn">Authenticate & Access Clinical Desk →</button>
+        <p style="font-size:0.85rem; color:var(--text-muted); margin-top:-0.4rem;">Please sign in with your authorized clinic credentials.</p>
+        <div class="form-group"><label>Facility Email</label><input type="email" id="c-login-email" placeholder="admin@clinic.com" required></div>
+        <div class="form-group"><label>Access Password</label><input type="password" id="c-login-pass" placeholder="••••••••" required></div>
+        <button type="submit" class="btn">Authenticate & Open Clinical Station →</button>
       </form>
     </div>
 
-    <!-- 2. CLINICAL WORKSTATION (LOCKED UNTIL AUTHENTICATED) -->
+    <!-- 2. CLINICAL WORKSTATION -->
     <div id="clinical-workstation" style="display:none;">
       
       <div style="display:flex; justify-content:space-between; align-items:center; background:#ffffff; padding:0.85rem 1.25rem; border-radius:10px; border:1px solid var(--border); margin-bottom:1.5rem;" class="no-print">
@@ -185,22 +166,15 @@
         <button onclick="logoutClinic()" style="background:#f1f5f9; border:1px solid var(--border); padding:0.4rem 0.8rem; border-radius:6px; font-weight:700; font-size:0.8rem; cursor:pointer;">🔒 Lock / Sign Out</button>
       </div>
 
-      <!-- Check-In Card: NFC Tap OR Patient ID Number -->
+      <!-- Check-In: NFC Tap OR Patient ID -->
       <div class="card no-print">
-        <button id="scan-btn" class="scan-btn">
-          <span>📡</span> Tap / Scan Patient NFC Tag
-        </button>
-
+        <button id="scan-btn" class="scan-btn"><span>📡</span> Tap / Scan Patient NFC Tag</button>
         <div class="or-divider"><span>Or Patient ID Lookup</span></div>
-
         <form onsubmit="lookupByPatientId(event)" class="search-box">
           <input type="number" id="lookup-id-input" class="search-input" placeholder="Enter Patient ID Number (e.g. 1, 2, 3...)" min="1" required>
           <button type="submit" class="search-btn">🔍 Lookup ID</button>
         </form>
-
-        <div id="status" class="status-pill">
-          <span id="status-icon">⚪</span> <span id="status-text">Ready for patient check-in</span>
-        </div>
+        <div id="status" class="status-pill"><span id="status-icon">⚪</span> <span id="status-text">Ready for patient check-in</span></div>
       </div>
 
       <!-- Queue Card -->
@@ -211,12 +185,7 @@
         </div>
         <table class="queue-table">
           <thead>
-            <tr>
-              <th>Time</th>
-              <th>Patient Name</th>
-              <th>Status</th>
-              <th>Actions</th>
-            </tr>
+            <tr><th>Time</th><th>Patient Name</th><th>Status</th><th>Actions</th></tr>
           </thead>
           <tbody id="queue-body">
             <tr><td colspan="4" style="text-align:center; color:var(--text-muted); font-size:0.8rem;">No patients waiting currently</td></tr>
@@ -240,22 +209,11 @@
           </div>
         </div>
 
-        <div class="data-row">
-          <span class="data-label">Insurance:</span>
-          <span id="insurance" class="pill pill-insurance" style="display:inline-block; width:fit-content;"></span>
-        </div>
-        <div class="data-row">
-          <span class="data-label">Allergies:</span>
-          <div id="allergies-box"></div>
-        </div>
-        <div class="data-row">
-          <span class="data-label">Conditions:</span>
-          <span id="conditions"></span>
-        </div>
-        <div class="data-row">
-          <span class="data-label">Emergency:</span>
-          <span id="emergency" style="font-weight:600;"></span>
-        </div>
+        <div class="data-row"><span class="data-label">Insurance:</span><span id="insurance" class="pill pill-insurance" style="display:inline-block; width:fit-content;"></span></div>
+        <div class="data-row"><span class="data-label">Allergies:</span><div id="allergies-box"></div></div>
+        <div class="data-row"><span class="data-label">Conditions:</span><span id="conditions"></span></div>
+        <div class="data-row"><span class="data-label">Emergency:</span><span id="emergency" style="font-weight:600;"></span></div>
+        <div class="data-row no-print"><span class="data-label">Contact Action:</span><span id="emergency-action-btn"></span></div>
 
         <!-- Triage Vitals -->
         <div class="section-title">🩺 Clinical Triage Vitals</div>
@@ -290,15 +248,24 @@
           </button>
         </form>
 
-        <!-- Folders -->
-        <div class="section-title">📁 Categorized Patient Records</div>
-        <div id="folders-container" class="folder-grid-display"></div>
+        <!-- Tier 2 Locked Archives (Requires 4-Digit Security PIN) -->
+        <div class="section-title">📁 Secure Patient Records Archive</div>
+        
+        <div class="pin-lock-card no-print" id="pin-lock-section">
+          <div style="font-weight:700; color:#0f172a; margin-bottom:0.3rem;">🔒 Full Medical Folders are Protected by Patient PIN</div>
+          <p style="font-size:0.8rem; color:var(--text-muted); margin-top:0;">Request the patient's 4-digit Security PIN to decrypt and unlock imaging & lab records.</p>
+          <div style="display:flex; justify-content:center; gap:0.5rem; max-width:240px; margin:0 auto;">
+            <input type="password" id="patient-pin-input" placeholder="4-Digit PIN" maxlength="4" style="text-align:center; font-size:1.1rem; letter-spacing:0.2em;">
+            <button onclick="verifyPatientPIN()" style="background:#0f172a; color:white; border:none; padding:0.5rem 1rem; border-radius:6px; font-weight:700; cursor:pointer;">Unlock</button>
+          </div>
+        </div>
+
+        <div id="folders-container" class="folder-grid-display" style="display:none;"></div>
       </div>
 
-      <!-- NFC Tag Assignment / Replacement -->
+      <!-- Link / Swap NFC Card -->
       <div class="card link-section no-print" style="background:#fffbeb; border:1px solid #fde68a;">
         <h3 style="font-weight:800; font-size:1rem; color:#92400e; margin:0 0 0.5rem 0;">🔗 NFC Card Assignment & Re-linking</h3>
-        <p style="font-size:0.8rem; color:#78350f; margin-top:0;">Assign a new card or replace a lost NFC badge for an existing patient.</p>
         <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
           <input type="email" id="link-email" placeholder="Patient's Registered Email" style="flex: 2; min-width: 200px; padding: 0.6rem; border: 1.5px solid #cbd5e1; border-radius: 6px; font-size:0.85rem;">
           <input type="text" id="link-card-id" placeholder="NFC Card ID (e.g. PATIENT-001)" style="flex: 1; min-width: 140px; padding: 0.6rem; border: 1.5px solid #cbd5e1; border-radius: 6px; font-size:0.85rem;">
@@ -311,27 +278,24 @@
     </div>
   </div>
 
-  <!-- 3. MASTER ADMIN MODAL -->
+  <!-- Master Admin Modal -->
   <div class="modal-overlay" id="admin-modal">
     <div class="modal-card">
       <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--border); padding-bottom:0.75rem; margin-bottom:1rem;">
-        <h3 style="margin:0; font-size:1.15rem; color:#0f172a;">🔑 Master Administrator Console</h3>
-        <button onclick="closeAdminModal()" style="background:none; border:none; font-size:1.2rem; cursor:pointer; color:var(--text-muted);">✕</button>
+        <h3 style="margin:0; font-size:1.15rem;">🔑 Master Administrator Console</h3>
+        <button onclick="closeAdminModal()" style="background:none; border:none; font-size:1.2rem; cursor:pointer;">✕</button>
       </div>
 
-      <!-- Admin Login Form -->
       <form id="admin-login-form" onsubmit="handleAdminLogin(event)">
-        <p style="font-size:0.85rem; color:var(--text-muted); margin-top:0;">Authenticate as Master Admin to provision clinic facilities and manage database.</p>
         <div class="form-group"><label>Admin Username</label><input type="text" id="adm-user" placeholder="Admin" required></div>
         <div class="form-group"><label>Admin Password</label><input type="password" id="adm-pass" placeholder="••••••••" required></div>
         <button type="submit" class="btn" style="background:#0f172a;">Log In to Admin Console</button>
       </form>
 
-      <!-- Admin Dashboard (After Login) -->
       <div id="admin-dashboard" style="display:none;">
         <h4 style="margin:0 0 0.5rem 0; color:var(--primary);">➕ Provision New Clinic Facility</h4>
         <form onsubmit="handleCreateClinic(event)" style="background:#f8fafc; padding:1rem; border-radius:8px; border:1px solid var(--border); margin-bottom:1.5rem;">
-          <div class="form-group"><label>Facility Name</label><input type="text" id="new-c-name" placeholder="e.g. San Fernando Health Center" required></div>
+          <div class="form-group"><label>Facility Name</label><input type="text" id="new-c-name" placeholder="San Fernando Health" required></div>
           <div class="form-group"><label>Facility License ID</label><input type="text" id="new-c-lic" placeholder="LIC-MED-2026-02" required></div>
           <div class="form-group"><label>Facility Email (Login)</label><input type="email" id="new-c-email" placeholder="staff@sfhealth.com" required></div>
           <div class="form-group"><label>Access Password</label><input type="password" id="new-c-pass" placeholder="Create strong password" required></div>
@@ -352,84 +316,61 @@
 
   <script>
     const API_URL = "https://medical-nfc-backend.onrender.com/api";
-    let activePatientEmail = "";
-    let cachedAdminAuth = null;
+    let activePatient = null;
+    let activeFacilityName = "Shekhar, Vinayak & Randhir Medical Center";
 
     window.addEventListener('DOMContentLoaded', () => {
       const savedClinic = sessionStorage.getItem('active_clinic_session');
-      if (savedClinic) {
-        unlockWorkstation(JSON.parse(savedClinic));
-      }
+      if (savedClinic) unlockWorkstation(JSON.parse(savedClinic));
     });
 
-    // Master Admin Modal Handlers
-    function openAdminModal() {
-      document.getElementById('admin-modal').style.display = 'flex';
-    }
-
-    function closeAdminModal() {
-      document.getElementById('admin-modal').style.display = 'none';
-    }
+    function openAdminModal() { document.getElementById('admin-modal').style.display = 'flex'; }
+    function closeAdminModal() { document.getElementById('admin-modal').style.display = 'none'; }
 
     async function handleAdminLogin(e) {
       e.preventDefault();
-      const username = document.getElementById('adm-user').value.trim();
-      const password = document.getElementById('adm-pass').value;
-
       const res = await fetch(`${API_URL}/admin/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, password })
+        body: JSON.stringify({
+          username: document.getElementById('adm-user').value.trim(),
+          password: document.getElementById('adm-pass').value
+        })
       });
       const data = await res.json();
-
       if (data.success) {
-        cachedAdminAuth = { username, password };
         document.getElementById('admin-login-form').style.display = 'none';
         document.getElementById('admin-dashboard').style.display = 'block';
         renderClinicsList(data.clinics);
-      } else {
-        alert(data.error);
-      }
+      } else alert(data.error);
     }
 
     async function handleCreateClinic(e) {
       e.preventDefault();
-      const payload = {
-        adminUsername: cachedAdminAuth.username,
-        adminPassword: cachedAdminAuth.password,
-        facilityName: document.getElementById('new-c-name').value,
-        facilityLicense: document.getElementById('new-c-lic').value,
-        email: document.getElementById('new-c-email').value,
-        password: document.getElementById('new-c-pass').value
-      };
-
       const res = await fetch(`${API_URL}/admin/create-clinic`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
+        body: JSON.stringify({
+          adminUsername: document.getElementById('adm-user').value.trim(),
+          adminPassword: document.getElementById('adm-pass').value,
+          facilityName: document.getElementById('new-c-name').value,
+          facilityLicense: document.getElementById('new-c-lic').value,
+          email: document.getElementById('new-c-email').value,
+          password: document.getElementById('new-c-pass').value
+        })
       });
       const data = await res.json();
-
       if (data.success) {
         alert(data.message);
         renderClinicsList(data.clinics);
         e.target.reset();
-      } else {
-        alert(data.error);
-      }
+      } else alert(data.error);
     }
 
     function renderClinicsList(clinics) {
-      const listDiv = document.getElementById('admin-clinics-list');
-      if (!clinics || clinics.length === 0) {
-        listDiv.innerHTML = '<div style="color:var(--text-muted);">No clinics found.</div>';
-        return;
-      }
-      listDiv.innerHTML = clinics.map(c => `
-        <div style="background:#f1f5f9; padding:0.6rem 0.75rem; border-radius:6px; margin-bottom:0.4rem; border:1px solid var(--border);">
-          <b>${c.facilityName}</b> <span style="color:var(--text-muted); font-size:0.75rem;">(${c.facilityLicense})</span><br>
-          <span style="color:#0284c7;">${c.email}</span>
+      document.getElementById('admin-clinics-list').innerHTML = (clinics || []).map(c => `
+        <div style="background:#f1f5f9; padding:0.6rem; border-radius:6px; margin-bottom:0.4rem; border:1px solid var(--border);">
+          <b>${c.facilityName}</b> (${c.facilityLicense})<br><span style="color:#0284c7;">${c.email}</span>
         </div>
       `).join('');
     }
@@ -443,29 +384,25 @@
       }
     }
 
-    // Clinic Staff Authentication
     async function handleClinicLogin(e) {
       e.preventDefault();
-      const payload = {
-        email: document.getElementById('c-login-email').value,
-        password: document.getElementById('c-login-pass').value
-      };
-
       const res = await fetch(`${API_URL}/clinic/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
+        body: JSON.stringify({
+          email: document.getElementById('c-login-email').value,
+          password: document.getElementById('c-login-pass').value
+        })
       });
       const data = await res.json();
       if (data.success) {
         sessionStorage.setItem('active_clinic_session', JSON.stringify(data.clinic));
         unlockWorkstation(data.clinic);
-      } else {
-        alert(data.error);
-      }
+      } else alert(data.error);
     }
 
     function unlockWorkstation(clinic) {
+      activeFacilityName = clinic.facilityName;
       document.getElementById('facility-auth-card').style.display = 'none';
       document.getElementById('clinical-workstation').style.display = 'block';
       document.getElementById('active-facility-name').innerText = `${clinic.facilityName} (${clinic.facilityLicense || 'Licensed'})`;
@@ -478,10 +415,10 @@
       location.reload();
     }
 
-    // 1. NFC Scan Handler
+    // NFC Scan Handler
     document.getElementById('scan-btn').addEventListener('click', async () => {
       if (!('NDEFReader' in window)) {
-        const testId = prompt("Web NFC not available on this browser. Enter Card ID to test:", "PATIENT-001");
+        const testId = prompt("Web NFC not available. Enter Card ID:", "PATIENT-001");
         if (testId) fetchCardData(testId);
         return;
       }
@@ -512,54 +449,30 @@
 
     async function fetchCardData(cardId) {
       try {
-        const res = await fetch(`${API_URL}/clinic/scan/${cardId}`);
+        const res = await fetch(`${API_URL}/clinic/scan/${cardId}?facility=${encodeURIComponent(activeFacilityName)}`);
         const result = await res.json();
-
         if (result.success) {
-          const p = result.patient;
-          activePatientEmail = p.email;
-          localStorage.setItem(`offline_nfc_${cardId}`, JSON.stringify(p));
-          renderPatientDetails(p);
+          activePatient = result.patient;
+          renderPatientDetails(result.patient);
           if (result.queue) renderQueue(result.queue);
-        } else {
-          alert(result.error);
-        }
-      } catch (networkErr) {
-        const cached = localStorage.getItem(`offline_nfc_${cardId}`);
-        if (cached) {
-          const p = JSON.parse(cached);
-          activePatientEmail = p.email;
-          renderPatientDetails(p);
-          alert("⚡ Notice: Operating in Offline Mode. Loaded record from local emergency cache.");
-        } else {
-          alert("Network error and no offline record available for this card.");
-        }
-      }
+        } else alert(result.error);
+      } catch (err) { alert("Failed to communicate with cloud server."); }
     }
 
-    // 2. Lookup by Patient ID Number (1, 2, 3...)
     async function lookupByPatientId(e) {
       e.preventDefault();
       const id = document.getElementById('lookup-id-input').value.trim();
       if (!id) return;
 
       try {
-        const res = await fetch(`${API_URL}/clinic/lookup-id/${encodeURIComponent(id)}`);
+        const res = await fetch(`${API_URL}/clinic/lookup-id/${encodeURIComponent(id)}?facility=${encodeURIComponent(activeFacilityName)}`);
         const result = await res.json();
-
         if (result.success) {
-          const p = result.patient;
-          activePatientEmail = p.email;
-          document.getElementById('status-icon').innerText = "👤";
-          document.getElementById('status-text').innerHTML = `Loaded Record: <b>${p.name}</b> (Patient ID #${p.patientId})`;
-          renderPatientDetails(p);
+          activePatient = result.patient;
+          renderPatientDetails(result.patient);
           if (result.queue) renderQueue(result.queue);
-        } else {
-          alert(result.error);
-        }
-      } catch (err) {
-        alert("Failed to connect to server. Please verify your connection.");
-      }
+        } else alert(result.error);
+      } catch (err) { alert("Failed to communicate with cloud server."); }
     }
 
     function renderPatientDetails(p) {
@@ -584,34 +497,53 @@
       document.getElementById('conditions').innerText = p.conditions && p.conditions.length ? p.conditions.join(', ') : 'None';
       document.getElementById('emergency').innerText = p.emergencyContact || 'None on record';
 
+      // WhatsApp / Call Emergency Trigger Button
+      const emergencyBtn = document.getElementById('emergency-action-btn');
+      if (p.emergencyContact) {
+        const cleanedNumber = p.emergencyContact.replace(/\D/g, '');
+        emergencyBtn.innerHTML = `
+          <a href="tel:${cleanedNumber}" style="background:#0284c7; color:white; padding:0.25rem 0.6rem; border-radius:4px; text-decoration:none; font-size:0.75rem; font-weight:700; margin-right:0.3rem;">📞 Call</a>
+          <a href="https://wa.me/${cleanedNumber}" target="_blank" style="background:#25d366; color:white; padding:0.25rem 0.6rem; border-radius:4px; text-decoration:none; font-size:0.75rem; font-weight:700;">💬 WhatsApp</a>
+        `;
+      } else emergencyBtn.innerText = 'No phone attached';
+
       if (p.vitals) {
         document.getElementById('vitals-display').innerHTML = `
           <b>BP:</b> ${p.vitals.bp || '--'} | <b>Pulse:</b> ${p.vitals.hr || '--'} | <b>Temp:</b> ${p.vitals.temp || '--'} | <b>SpO2:</b> ${p.vitals.spo2 || '--'} | <b>Weight:</b> ${p.vitals.weight || '--'}
-          <div style="font-size:0.75rem; color:#64748b; margin-top:0.2rem;">Logged: ${p.vitals.recordedAt}</div>
+          <div style="font-size:0.75rem; color:#64748b; margin-top:0.2rem;">Logged: ${p.vitals.recordedAt} (${p.vitals.facility || ''})</div>
         `;
-      } else {
-        document.getElementById('vitals-display').innerText = "No triage vitals recorded for this session.";
-      }
+      } else document.getElementById('vitals-display').innerText = "No triage vitals recorded for this session.";
 
       if (p.consultation) {
         document.getElementById('consultation-display').innerHTML = `
           <div><b>Diagnosis:</b> ${p.consultation.diagnosis || 'None'}</div>
           <div style="margin-top:0.3rem;"><b>Rx:</b> ${p.consultation.prescription || 'None'}</div>
-          <div style="font-size:0.75rem; color:#64748b; margin-top:0.2rem;">Encounter: ${p.consultation.recordedAt}</div>
+          <div style="font-size:0.75rem; color:#64748b; margin-top:0.2rem;">Encounter: ${p.consultation.recordedAt} (${p.consultation.facility || ''})</div>
         `;
-      } else {
-        document.getElementById('consultation-display').innerText = "No doctor notes recorded yet.";
-      }
+      } else document.getElementById('consultation-display').innerText = "No doctor notes recorded yet.";
 
-      const docs = p.document || {};
-      document.getElementById('folders-container').innerHTML = `
-        ${renderFolder("📝 Doctor Notes", docs.doctorNotes)}
-        ${renderFolder("🩸 Blood Tests", docs.bloodTests)}
-        ${renderFolder("🦴 X-Ray", docs.xray)}
-        ${renderFolder("🧠 CT Scans", docs.ctScans)}
-        ${renderFolder("📡 Ultrasound", docs.ultrasound)}
-        ${renderFolder("❤️ Cardiology", docs.cardiology)}
-      `;
+      // Reset archive lock
+      document.getElementById('pin-lock-section').style.display = 'block';
+      document.getElementById('folders-container').style.display = 'none';
+      document.getElementById('patient-pin-input').value = '';
+    }
+
+    async function verifyPatientPIN() {
+      const pin = document.getElementById('patient-pin-input').value.trim();
+      if (!pin) return alert("Please enter the patient's 4-digit PIN.");
+
+      const res = await fetch(`${API_URL}/clinic/verify-pin`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: activePatient.email, pin, facilityName: activeFacilityName })
+      });
+      const data = await res.json();
+
+      if (data.success) {
+        document.getElementById('pin-lock-section').style.display = 'none';
+        document.getElementById('folders-container').style.display = 'grid';
+        renderUnlockedFolders(activePatient.document || {}, data.privacySettings || {});
+      } else alert(data.error);
     }
 
     function createBlobUrl(base64Data) {
@@ -623,7 +555,10 @@
       return URL.createObjectURL(new Blob([ab], { type: mimeString }));
     }
 
-    function renderFolder(name, fileObj) {
+    function renderFolderItem(name, fileObj, isConsentGranted) {
+      if (!isConsentGranted) {
+        return `<div class="folder-display-card"><div class="folder-title">${name}</div><div class="no-file" style="color:#ef4444;">🔒 Hidden by Patient Consent Setting</div></div>`;
+      }
       if (!fileObj || !fileObj.data) {
         return `<div class="folder-display-card"><div class="folder-title">${name}</div><div class="no-file">No file attached</div></div>`;
       }
@@ -636,6 +571,17 @@
             <a href="${blobUrl}" download="${fileObj.name}" class="action-btn dl">⬇️ ${fileObj.name}</a>
           </div>
         </div>
+      `;
+    }
+
+    function renderUnlockedFolders(docs, consent) {
+      document.getElementById('folders-container').innerHTML = `
+        ${renderFolderItem("📝 Doctor Notes", docs.doctorNotes, consent.doctorNotes !== false)}
+        ${renderFolderItem("🩸 Blood Tests", docs.bloodTests, consent.bloodTests !== false)}
+        ${renderFolderItem("🦴 X-Ray", docs.xray, consent.xray !== false)}
+        ${renderFolderItem("🧠 CT Scans", docs.ctScans, consent.ctScans !== false)}
+        ${renderFolderItem("📡 Ultrasound", docs.ultrasound, consent.ultrasound !== false)}
+        ${renderFolderItem("❤️ Cardiology", docs.cardiology, consent.cardiology !== false)}
       `;
     }
 
@@ -679,7 +625,7 @@
 
     async function saveVitals(e) {
       e.preventDefault();
-      if (!activePatientEmail) return alert("Please scan or lookup a patient record first.");
+      if (!activePatient) return alert("Please scan a patient card first.");
 
       const vitals = {
         bp: document.getElementById('v-bp').value,
@@ -692,7 +638,7 @@
       const res = await fetch(`${API_URL}/clinic/update-clinical-record`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: activePatientEmail, vitals })
+        body: JSON.stringify({ email: activePatient.email, vitals, facilityName: activeFacilityName })
       });
       const data = await res.json();
       if (data.success) {
@@ -703,7 +649,7 @@
 
     async function saveConsultation(e) {
       e.preventDefault();
-      if (!activePatientEmail) return alert("Please scan or lookup a patient record first.");
+      if (!activePatient) return alert("Please scan a patient card first.");
 
       const consultation = {
         diagnosis: document.getElementById('doc-diagnosis').value,
@@ -713,7 +659,7 @@
       const res = await fetch(`${API_URL}/clinic/update-clinical-record`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: activePatientEmail, consultation })
+        body: JSON.stringify({ email: activePatient.email, consultation, facilityName: activeFacilityName })
       });
       const data = await res.json();
       if (data.success) {
