@@ -17,6 +17,10 @@
     .tab-btn { flex: 1; padding: 0.75rem; background: #e2e8f0; color: #475569; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 0.95rem; transition: 0.2s; }
     .tab-btn.active { background: #0284c7; color: white; }
 
+    /* Forgot Password Link */
+    .forgot-link { display: block; text-align: right; margin-top: 0.4rem; margin-bottom: 1rem; font-size: 0.85rem; color: #0284c7; text-decoration: none; cursor: pointer; font-weight: 600; }
+    .forgot-link:hover { text-decoration: underline; }
+
     /* Folder Upload Section Styling */
     .folder-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1rem; margin-top: 1rem; }
     .folder-card { border: 1px dashed #cbd5e1; background: #f1f5f9; padding: 1rem; border-radius: 6px; }
@@ -27,9 +31,9 @@
 </head>
 <body>
 
-  <!-- Auth Box with Register & Login Tabs -->
+  <!-- Auth Box with Register, Login, and Forgot Password -->
   <div class="card" id="auth-box">
-    <div class="tab-container">
+    <div class="tab-container" id="tab-header">
       <button class="tab-btn active" id="tab-reg-btn" onclick="showAuthTab('register')">Create New Account</button>
       <button class="tab-btn" id="tab-login-btn" onclick="showAuthTab('login')">Existing Patient Login</button>
     </div>
@@ -52,7 +56,18 @@
       <h3 style="margin-top:0; color:#0284c7;">🔑 Patient Login</h3>
       <div class="form-group"><label>Email Address</label><input type="email" id="login-email" placeholder="jane@example.com" required></div>
       <div class="form-group"><label>Password</label><input type="password" id="login-pass" required></div>
+      <a class="forgot-link" onclick="showAuthTab('forgot')">Forgot Password?</a>
       <button type="submit" style="background:#0284c7;">Log In to My Records</button>
+    </form>
+
+    <!-- Forgot Password Form -->
+    <form id="forgot-form" style="display:none;">
+      <h3 style="margin-top:0; color:#0284c7;">🔒 Reset Your Password</h3>
+      <p style="font-size: 0.85rem; color: #64748b; margin-top: -0.5rem;">Enter your registered account email and choose a new password.</p>
+      <div class="form-group"><label>Registered Email Address</label><input type="email" id="reset-email" placeholder="jane@example.com" required></div>
+      <div class="form-group"><label>New Password</label><input type="password" id="reset-new-pass" required placeholder="Enter new password"></div>
+      <button type="submit" style="background:#0284c7;">Set New Password</button>
+      <a class="forgot-link" style="text-align: center; margin-top: 1rem;" onclick="showAuthTab('login')">← Back to Login</a>
     </form>
   </div>
 
@@ -115,16 +130,22 @@
     let currentUser = null;
 
     function showAuthTab(tab) {
+      document.getElementById('register-form').style.display = 'none';
+      document.getElementById('login-form').style.display = 'none';
+      document.getElementById('forgot-form').style.display = 'none';
+      document.getElementById('tab-reg-btn').classList.remove('active');
+      document.getElementById('tab-login-btn').classList.remove('active');
+      document.getElementById('tab-header').style.display = 'flex';
+
       if (tab === 'register') {
         document.getElementById('register-form').style.display = 'block';
-        document.getElementById('login-form').style.display = 'none';
         document.getElementById('tab-reg-btn').classList.add('active');
-        document.getElementById('tab-login-btn').classList.remove('active');
-      } else {
-        document.getElementById('register-form').style.display = 'none';
+      } else if (tab === 'login') {
         document.getElementById('login-form').style.display = 'block';
-        document.getElementById('tab-reg-btn').classList.remove('active');
         document.getElementById('tab-login-btn').classList.add('active');
+      } else if (tab === 'forgot') {
+        document.getElementById('forgot-form').style.display = 'block';
+        document.getElementById('tab-header').style.display = 'none';
       }
     }
 
@@ -142,7 +163,6 @@
       if (user.conditions) document.getElementById('conditions').value = user.conditions.join(', ');
       if (user.emergencyContact) document.getElementById('emergency').value = user.emergencyContact;
 
-      // Show existing uploaded filenames if available
       const docs = user.document || {};
       if (docs.doctorNotes) document.getElementById('status-doc-notes').innerText = `✓ On File: ${docs.doctorNotes.name}`;
       if (docs.bloodTests) document.getElementById('status-blood-tests').innerText = `✓ On File: ${docs.bloodTests.name}`;
@@ -199,6 +219,30 @@
       }
     });
 
+    // Handle Forgot / Reset Password
+    document.getElementById('forgot-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const payload = {
+        email: document.getElementById('reset-email').value,
+        newPassword: document.getElementById('reset-new-pass').value
+      };
+
+      const res = await fetch(`${API_URL}/patient/reset-password`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      const data = await res.json();
+
+      if (data.success) {
+        alert(data.message);
+        showAuthTab('login');
+        document.getElementById('login-email').value = payload.email;
+      } else {
+        alert(data.error);
+      }
+    });
+
     async function readFileAsBase64(fileInput) {
       if (fileInput.files.length === 0) return null;
       const file = fileInput.files[0];
@@ -215,7 +259,6 @@
 
       const existingDocs = (currentUser && currentUser.document) || {};
 
-      // Keep existing files if no new file is selected
       const documents = {
         doctorNotes: (await readFileAsBase64(document.getElementById('file-doc-notes'))) || existingDocs.doctorNotes || null,
         bloodTests: (await readFileAsBase64(document.getElementById('file-blood-tests'))) || existingDocs.bloodTests || null,

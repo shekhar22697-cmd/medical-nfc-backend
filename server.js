@@ -12,6 +12,7 @@ app.get('/', (req, res) => {
   res.send('Shekhar and Vinayak Medical API is live!');
 });
 
+// Patient Registration
 app.post('/api/patient/register', (req, res) => {
   const { email, password, name, dob, bloodType, insurance, allergies, conditions, emergencyContact } = req.body;
   
@@ -30,6 +31,7 @@ app.post('/api/patient/register', (req, res) => {
   res.json({ success: true, message: "Account created successfully!", user: USERS_DB[email] });
 });
 
+// Patient Login
 app.post('/api/patient/login', (req, res) => {
   const { email, password } = req.body;
   const user = USERS_DB[email];
@@ -41,6 +43,20 @@ app.post('/api/patient/login', (req, res) => {
   res.json({ success: true, user });
 });
 
+// Reset / Forgot Password
+app.post('/api/patient/reset-password', (req, res) => {
+  const { email, newPassword } = req.body;
+  const user = USERS_DB[email];
+
+  if (!user) {
+    return res.status(404).json({ error: "No account found with this email address." });
+  }
+
+  user.password = newPassword;
+  res.json({ success: true, message: "Password has been reset successfully! You can now log in." });
+});
+
+// Update Profile & Medical Folders
 app.post('/api/patient/update-profile', (req, res) => {
   const { email, allergies, conditions, emergencyContact, insurance, document } = req.body;
   const user = USERS_DB[email];
@@ -56,6 +72,7 @@ app.post('/api/patient/update-profile', (req, res) => {
   res.json({ success: true, user });
 });
 
+// Clinic Link NFC Card
 app.post('/api/clinic/link-card', (req, res) => {
   const { cardId, email } = req.body;
   
@@ -69,6 +86,7 @@ app.post('/api/clinic/link-card', (req, res) => {
   res.json({ success: true, message: `Card ${cardId} linked to ${USERS_DB[email].name}` });
 });
 
+// Clinic Scan NFC Card
 app.get('/api/clinic/scan/:cardId', (req, res) => {
   const { cardId } = req.params;
   const patientEmail = CARD_MAP_DB[cardId];
